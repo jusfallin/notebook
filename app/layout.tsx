@@ -12,6 +12,7 @@ import './romance-interactions.css';
 import './love-atmosphere.css';
 import './toolbar-guide.css';
 import './mode-home-redesign.css';
+import './touch-transition.css';
 import ConfirmProvider from './confirm-provider';
 
 export const metadata: Metadata = {
