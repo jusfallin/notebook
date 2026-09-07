@@ -3,7 +3,6 @@ import './globals.css';
 import './notebook-overrides.css';
 import './notebook-polish.css';
 import './cover.css';
-import './modes.css';
 import ConfirmProvider from './confirm-provider';
 
 export const metadata: Metadata = {
