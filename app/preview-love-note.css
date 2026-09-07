@@ -1,0 +1,64 @@
+/* First-page preview: turn the diary sheet into a keepsake love note. */
+.preview-paper .opening-page {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  overflow: hidden !important;
+  padding: 34px 44px 30px !important;
+  text-align: center !important;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(236,154,169,.10), transparent 24%),
+    radial-gradient(circle at 82% 76%, rgba(216,174,94,.08), transparent 26%),
+    #fbf7ef !important;
+}
+.preview-paper .opening-page::before {
+  content: "" !important;
+  display: block !important;
+  width: min(78%, 330px) !important;
+  aspect-ratio: 350 / 397 !important;
+  margin: 4px auto 22px !important;
+  background-image: url("/our-first-photo.jpg") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  border: 9px solid #fffaf4 !important;
+  box-shadow: 0 13px 28px rgba(70,45,35,.18), 0 2px 5px rgba(70,45,35,.12) !important;
+  transform: rotate(-1.2deg) !important;
+  border-radius: 2px !important;
+  z-index: 2 !important;
+}
+.preview-paper .opening-page::after {
+  content: "TO MY LOVE  ♡\A\A I didn’t know what I was looking for —\A until I found you.\A\A I could write a thousand beautiful sentences about you\A and still feel like I haven’t said enough.\A Somewhere between our conversations, our favorite songs,\A your little ways of caring, and all those moments that are just ours,\A you became someone incredibly special to me.\A\A I love your voice, your eyes, your positivity, your heart,\A and even the tiny things you probably don’t realize I notice.\A You make me feel understood, cared for,\A and ridiculously lucky to call you my girl.  ♡" !important;
+  white-space: pre-line !important;
+  display: block !important;
+  width: min(92%, 620px) !important;
+  margin: 0 auto !important;
+  color: #5a3d34 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(12px, 1.05vw, 16px) !important;
+  line-height: 1.48 !important;
+  letter-spacing: .01em !important;
+  z-index: 2 !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.7) !important;
+}
+.preview-paper .opening-entry-topline,
+.preview-paper .opening-page > .rule,
+.preview-paper .opening-entry-text,
+.preview-paper .opening-memory-grid,
+.preview-paper .opening-footer {
+  display: none !important;
+}
+.preview-paper-wrap {
+  align-self: center !important;
+}
+@media (max-width: 1150px) {
+  .preview-paper .opening-page::before {
+    width: min(70%, 270px) !important;
+    margin-bottom: 15px !important;
+  }
+  .preview-paper .opening-page::after {
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+  }
+}
