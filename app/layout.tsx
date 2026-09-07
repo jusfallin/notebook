@@ -4,6 +4,7 @@ import './notebook-overrides.css';
 import './notebook-polish.css';
 import './cover.css';
 import './love-redesign.css';
+import './opening-page.css';
 import ConfirmProvider from './confirm-provider';
 
 export const metadata: Metadata = {
