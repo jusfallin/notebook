@@ -1,0 +1,89 @@
+/* DEKA touch transition — tactile flash before the next scene appears */
+.cover,
+.preview-choice,
+.mode-heart,
+.love-orbit-heart,
+button{ -webkit-tap-highlight-color: transparent; }
+
+/* A soft warm flash, like light catching the page when a finger lands. */
+.cover,
+.preview-choice,
+.mode-heart,
+.love-orbit-heart{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+}
+
+.cover::after,
+.preview-choice::after,
+.mode-heart::after,
+.love-orbit-heart::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:28px;
+  height:28px;
+  border-radius:999px;
+  pointer-events:none;
+  z-index:20;
+  opacity:0;
+  transform:translate(-50%,-50%) scale(.35);
+  background:radial-gradient(circle,rgba(255,238,218,.95) 0%,rgba(244,188,171,.55) 28%,rgba(208,126,113,.22) 58%,transparent 74%);
+}
+
+.cover:active::after,
+.preview-choice:active::after,
+.mode-heart:active::after,
+.love-orbit-heart:active::after{
+  animation:dekaTouchFlash .58s cubic-bezier(.2,.75,.2,1) both;
+}
+
+.cover:active{
+  filter:brightness(1.12) saturate(1.08);
+  box-shadow:0 0 0 1px rgba(255,221,205,.22),0 0 42px rgba(222,143,128,.24),0 28px 60px rgba(0,0,0,.4)!important;
+}
+
+.preview-choice:active{
+  background:linear-gradient(145deg,rgba(255,242,229,.99),rgba(225,190,170,.99))!important;
+  box-shadow:0 0 0 1px rgba(255,225,210,.55),0 0 30px rgba(214,137,123,.24),0 18px 38px rgba(0,0,0,.25)!important;
+}
+
+.mode-heart:active,
+.love-orbit-heart:active{
+  filter:brightness(1.25) saturate(1.2);
+}
+
+/* Every newly revealed scene gently blooms in instead of appearing abruptly. */
+.mode-home,
+.reader-shell,
+.studio-shell,
+.notebook-shell,
+.desktop-notebook{
+  animation:dekaSceneArrive .72s cubic-bezier(.2,.75,.2,1) both;
+}
+
+@keyframes dekaTouchFlash{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.35)}
+  18%{opacity:1;transform:translate(-50%,-50%) scale(2.4)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(7.5)}
+}
+
+@keyframes dekaSceneArrive{
+  0%{opacity:0;filter:brightness(1.25);transform:scale(1.018)}
+  45%{opacity:1;filter:brightness(1.06);transform:scale(1.004)}
+  100%{opacity:1;filter:brightness(1);transform:scale(1)}
+}
+
+@media(max-width:850px){
+  .cover:active{transform:scale(.985)!important;}
+  .preview-choice{min-height:104px;touch-action:manipulation;}
+  .preview-choice:active{transform:scale(.975)!important;}
+  .mode-heart:active,.love-orbit-heart:active{transform:scale(.91)!important;}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .cover:active::after,.preview-choice:active::after,.mode-heart:active::after,.love-orbit-heart:active::after{animation:none;}
+  .mode-home,.reader-shell,.studio-shell,.notebook-shell,.desktop-notebook{animation:none;}
+}
