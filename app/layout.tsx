@@ -10,6 +10,7 @@ import './preview-love-note.css';
 import './first-page.css';
 import './romance-interactions.css';
 import './love-atmosphere.css';
+import './toolbar-guide.css';
 import ConfirmProvider from './confirm-provider';
 
 export const metadata: Metadata = {
