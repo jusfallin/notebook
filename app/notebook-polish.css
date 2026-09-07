@@ -1,0 +1,180 @@
+/* ================================================================
+   DEKA NOTEBOOK — REAL PAPER POLISH
+   A quiet, tactile single-leaf treatment: no fake center seam,
+   no decorative symbol sitting in the middle of the page.
+   ================================================================ */
+
+/* One physical leaf — this is not an open two-page spread. */
+.book-stage{width:680px;height:724px;perspective:2400px;perspective-origin:50% 46%;}
+.physical-desk{padding:10px 0 20px;}
+.physical-desk .book-stage{filter:drop-shadow(0 22px 30px rgba(63,43,31,.10));}
+
+/* Remove the old artificial binding line from the middle of the sheet. */
+.spine-shadow{display:none!important;}
+
+/* Paper: warm pulp, subtle fibres, soft light falloff and real edge depth. */
+.paper-base,
+.turn-sheet .paper{
+  background:
+    radial-gradient(circle at 18% 10%,rgba(255,255,255,.78),transparent 25%),
+    radial-gradient(circle at 88% 84%,rgba(171,137,105,.075),transparent 29%),
+    repeating-linear-gradient(0deg,rgba(91,68,48,.018) 0 1px,transparent 1px 4px),
+    linear-gradient(112deg,#fffdf7 0%,#fbf6ec 55%,#f4ecdf 100%)!important;
+  box-shadow:
+    10px 18px 30px rgba(55,39,29,.15),
+    inset 1px 0 rgba(255,255,255,.9),
+    inset -12px 0 20px rgba(88,62,43,.045)!important;
+}
+.paper-base:before,
+.turn-sheet .paper:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.18;
+  background:
+    radial-gradient(circle at 30% 30%,rgba(115,86,62,.10) 0 1px,transparent 1.4px),
+    radial-gradient(circle at 70% 65%,rgba(115,86,62,.08) 0 1px,transparent 1.5px);
+  background-size:19px 23px,27px 31px;
+  mix-blend-mode:multiply;
+  z-index:0;
+}
+.paper-base:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:8;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.26),transparent 7%,transparent 91%,rgba(80,56,39,.075)),
+    linear-gradient(180deg,rgba(255,255,255,.13),transparent 10%,transparent 88%,rgba(75,52,37,.045));
+}
+
+/* A believable page edge: the outer edge is slightly darker, never a hard line. */
+.book-stage:after{
+  content:"";
+  position:absolute;
+  top:14px;
+  right:-4px;
+  bottom:12px;
+  width:8px;
+  border-radius:0 4px 4px 0;
+  pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(142,116,91,.16) 0 1px,rgba(255,255,255,.18) 1px 4px);
+  opacity:.62;
+  z-index:18;
+}
+
+/* Dedication page becomes a refined title page rather than a generic card. */
+.dedication{padding:6.5% 8% 5%!important;justify-content:center;}
+.dedication:before{
+  content:"";
+  position:absolute;
+  left:7%;right:7%;top:4.8%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(154,123,93,.24) 18%,rgba(154,123,93,.24) 82%,transparent);
+  pointer-events:none;
+}
+.dedication:after{
+  content:"";
+  position:absolute;
+  left:7%;right:7%;bottom:4.5%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(154,123,93,.18) 18%,rgba(154,123,93,.18) 82%,transparent);
+  pointer-events:none;
+}
+.dedication .eyebrow{
+  display:flex;align-items:center;justify-content:center;gap:13px;
+  font-size:8px;letter-spacing:.28em;color:#967c69;
+}
+.dedication .eyebrow span{font-size:7px;color:#b89b77;}
+.dedication h1{
+  position:relative;
+  z-index:2;
+  margin:6.5% 0 3.5%!important;
+  font-size:clamp(44px,5vw,60px)!important;
+  line-height:.98;
+  letter-spacing:-.018em;
+  color:#4f3e35!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.85),0 8px 18px rgba(94,65,48,.055);
+}
+.dedication h1:after{
+  content:"";
+  position:absolute;
+  left:50%;bottom:-15px;
+  width:42px;height:1px;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent,#b79774,transparent);
+}
+.handwritten{
+  position:relative;z-index:2;
+  max-width:540px;
+  margin:2.5% auto 4%!important;
+  font-size:clamp(21px,2.3vw,27px)!important;
+  line-height:1.42!important;
+  color:#80645e!important;
+  text-shadow:0 1px rgba(255,255,255,.75);
+}
+
+/* Polaroid-like photograph, but with restrained paper/tape detail. */
+.photo-frame{
+  width:min(292px,64%)!important;
+  aspect-ratio:1.22/1!important;
+  padding:9px!important;
+  border:1px solid rgba(151,124,96,.48)!important;
+  outline:0!important;
+  background:linear-gradient(145deg,#fdf8ed,#ece1d1)!important;
+  box-shadow:
+    0 20px 28px rgba(76,52,37,.13),
+    0 4px 8px rgba(76,52,37,.08),
+    inset 0 0 0 4px rgba(255,255,255,.52)!important;
+  transform:rotate(-1.1deg) translateY(2px);
+  transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s ease;
+  overflow:visible!important;
+  z-index:3;
+}
+.photo-frame:before{
+  content:"";
+  position:absolute;
+  width:72px;height:18px;
+  left:50%;top:-9px;
+  transform:translateX(-50%) rotate(1.5deg);
+  background:linear-gradient(180deg,rgba(232,209,165,.72),rgba(214,186,138,.56));
+  box-shadow:0 1px 2px rgba(88,62,43,.08);
+  opacity:.76;
+  pointer-events:none;
+}
+.photo-frame:after{
+  content:"";
+  position:absolute;
+  inset:9px;
+  border:1px solid rgba(255,255,255,.42);
+  pointer-events:none;
+}
+.photo-frame:hover{transform:rotate(0deg) translateY(-5px) scale(1.012);box-shadow:0 25px 38px rgba(76,52,37,.17),0 5px 10px rgba(76,52,37,.08),inset 0 0 0 4px rgba(255,255,255,.56)!important;}
+.photo-frame img{display:block;border-radius:1px;filter:saturate(.94) contrast(.98) sepia(.035);}
+
+/* The old centered ❦ was visually competing with the page. */
+.dedication .flourish{display:none!important;}
+.text-link{
+  position:relative;z-index:3;
+  margin-top:4.2%!important;
+  padding:10px 18px!important;
+  border:1px solid rgba(131,99,76,.22)!important;
+  border-radius:999px!important;
+  text-decoration:none!important;
+  font:500 9px 'DM Mono',monospace;
+  letter-spacing:.08em;
+  color:#70564b!important;
+  background:rgba(255,252,245,.58)!important;
+  box-shadow:0 5px 14px rgba(74,52,38,.06),inset 0 1px rgba(255,255,255,.85);
+  transition:transform .25s ease,background .25s ease,box-shadow .25s ease;
+}
+.text-link:hover{transform:translateY(-2px);background:#fffaf2!important;box-shadow:0 9px 20px rgba(74,52,38,.10),inset 0 1px rgba(255,255,255,.95);}
+
+/* Give the whole leaf a barely-visible light bloom, not a synthetic glow. */
+.dedication.spread:after{ /* overwritten by a second background layer via box-shadow on the element */ }
+.book-stage .paper-base{isolation:isolate;}
+.book-stage .paper-base > .spread:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.26),transparent 47%);z-index:-1;}
+
+/* Make the desktop composition breathe on 1366/1440/1920px screens. */
+@media (min-height:820px){.book-stage{height:750px;width:705px}.physical-desk .cover{width:705px!important;}}
+@media (max-height:790px){.book-stage{height:690px;width:648px}.physical-desk .cover{width:648px!important;}.dedication{padding-top:5%!important;padding-bottom:4%!important}.dedication h1{margin-top:4.5%!important}.handwritten{margin-bottom:3%!important}.photo-frame{width:255px!important}.text-link{margin-top:2.8%!important;}}
