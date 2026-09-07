@@ -1,0 +1,217 @@
+name: One-time notebook polish
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out notebook
+        uses: actions/checkout@v4
+
+      - name: Fix editor navigation and add romantic interaction polish
+        shell: python
+        run: |
+          from pathlib import Path
+
+          page = Path('app/page.tsx')
+          text = page.read_text(encoding='utf-8')
+          old = "function enterStudio(entryIndex = 0) { setPage(1); setMode('studio'); setEdit(true); setDirty(false); setShowIndex(false); }"
+          new = "function enterStudio(entryIndex = 0) { const target = entryIndex >= 0 && entryIndex < state.entries.length ? entryPage(entryIndex) : 1; setPage(target); setMode('studio'); setEdit(true); setDirty(false); setShowIndex(false); }"
+          if old not in text:
+              raise SystemExit('Expected enterStudio function was not found')
+          page.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          css = Path('app/romance-interactions.css')
+          css.write_text(r'''
+/* Romantic interaction layer for the notebook mode-selection page. */
+.preview-mode-home {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(196,120,137,.16), transparent 26%),
+    radial-gradient(circle at 78% 78%, rgba(220,171,126,.10), transparent 30%),
+    linear-gradient(135deg, #211b18 0%, #2c2420 48%, #1d1816 100%);
+}
+.preview-mode-home::before,
+.preview-mode-home::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(2px);
+}
+.preview-mode-home::before {
+  width: 360px;
+  height: 360px;
+  left: 30%;
+  top: 18%;
+  background: radial-gradient(circle, rgba(205,126,143,.10), transparent 68%);
+  animation: notebook-breathe 6s ease-in-out infinite;
+}
+.preview-mode-home::after {
+  width: 240px;
+  height: 240px;
+  right: 8%;
+  bottom: 5%;
+  background: radial-gradient(circle, rgba(244,205,185,.08), transparent 70%);
+  animation: notebook-breathe 7s ease-in-out infinite reverse;
+}
+.mode-home-head { backdrop-filter: blur(10px); }
+.mode-heart {
+  position: relative;
+  transition: transform .25s ease, box-shadow .25s ease, background .25s ease !important;
+}
+.mode-heart::after {
+  content: 'send love';
+  position: absolute;
+  right: 42px;
+  white-space: nowrap;
+  font: 500 8px 'DM Mono', monospace;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(247,224,213,.55);
+  opacity: 0;
+  transform: translateX(7px);
+  transition: .25s ease;
+  pointer-events: none;
+}
+.mode-heart:hover { transform: scale(1.08); box-shadow: 0 0 0 7px rgba(207,132,148,.07), 0 8px 25px rgba(0,0,0,.18); }
+.mode-heart:hover::after { opacity: 1; transform: translateX(0); }
+.preview-copy { animation: copy-arrive .8s cubic-bezier(.2,.8,.2,1) both; }
+.preview-actions { animation: actions-arrive .9s .08s cubic-bezier(.2,.8,.2,1) both; }
+.preview-quiet-space { position: relative; }
+.preview-quiet-space::before {
+  content: '';
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border: 1px solid rgba(225,185,174,.12);
+  border-radius: 50%;
+  box-shadow: 0 0 55px rgba(209,132,148,.08), inset 0 0 30px rgba(209,132,148,.04);
+  animation: love-orbit 8s linear infinite;
+}
+.preview-quiet-space span {
+  position: relative;
+  z-index: 1;
+  font-size: 58px !important;
+  color: rgba(240,192,188,.72) !important;
+  text-shadow: 0 0 28px rgba(220,133,151,.28);
+  animation: heart-float 2.8s ease-in-out infinite;
+}
+.preview-quiet-space span::after {
+  content: '♡';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%) scale(1.7);
+  color: rgba(233,177,177,.08);
+  animation: heart-ring 2.8s ease-out infinite;
+}
+.preview-quiet-space small { color: rgba(235,211,192,.5); }
+.preview-choice {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(248,228,215,.20) !important;
+  background:
+    linear-gradient(135deg, rgba(250,238,224,.97), rgba(226,207,188,.96)) !important;
+  box-shadow: 0 16px 34px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.58);
+  transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease !important;
+}
+.preview-choice::before {
+  content: '';
+  position: absolute;
+  inset: -80% -35%;
+  background: linear-gradient(105deg, transparent 43%, rgba(255,255,255,.32) 49%, transparent 55%);
+  transform: translateX(-55%) rotate(8deg);
+  transition: transform .75s ease;
+  pointer-events: none;
+}
+.preview-choice::after {
+  content: '♡';
+  position: absolute;
+  right: 20px;
+  top: 15px;
+  font: 25px Georgia, serif;
+  color: rgba(170,104,115,.22);
+  transform: rotate(-12deg);
+  transition: transform .3s ease, color .3s ease;
+  pointer-events: none;
+}
+.preview-choice:hover {
+  border-color: rgba(205,126,143,.45) !important;
+  box-shadow: 0 22px 42px rgba(0,0,0,.27), 0 0 0 5px rgba(205,126,143,.05), inset 0 1px 0 rgba(255,255,255,.72);
+}
+.preview-choice:hover::before { transform: translateX(55%) rotate(8deg); }
+.preview-choice:hover::after { color: rgba(170,104,115,.48); transform: rotate(0) scale(1.12); }
+.preview-choice h2 { transition: letter-spacing .3s ease, color .3s ease; }
+.preview-choice:hover h2 { letter-spacing: .02em; color: #7a4d52; }
+.choice-number {
+  transition: color .3s ease, transform .3s ease;
+}
+.preview-choice:hover .choice-number { color: #a96f76; transform: translateY(-2px); }
+.reader-choice strong, .studio-choice strong {
+  transition: transform .25s ease, color .25s ease;
+}
+.preview-choice:hover strong { transform: translateX(4px); color: #8e5960; }
+.preview-rule span { animation: tiny-heart 2.2s ease-in-out infinite; }
+.preview-meta { color: rgba(234,207,190,.48) !important; }
+
+@keyframes notebook-breathe { 0%,100%{transform:scale(.94);opacity:.7} 50%{transform:scale(1.06);opacity:1} }
+@keyframes heart-float { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-7px) scale(1.04)} }
+@keyframes heart-ring { 0%{opacity:.35;transform:translate(-50%,-50%) scale(.9)} 100%{opacity:0;transform:translate(-50%,-50%) scale(1.9)} }
+@keyframes love-orbit { to { transform: rotate(360deg); } }
+@keyframes tiny-heart { 0%,100%{transform:scale(1)} 50%{transform:scale(1.18)} }
+@keyframes copy-arrive { from{opacity:0;transform:translateX(-18px)} to{opacity:1;transform:none} }
+@keyframes actions-arrive { from{opacity:0;transform:translateX(18px)} to{opacity:1;transform:none} }
+
+/* Make the reader's Edit this memory control feel unmistakably tappable. */
+.love-button {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(169,111,118,.28) !important;
+  background: linear-gradient(135deg, rgba(255,249,242,.92), rgba(246,225,218,.88)) !important;
+  box-shadow: 0 7px 20px rgba(110,70,60,.09);
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease !important;
+  z-index: 8;
+  pointer-events: auto !important;
+}
+.love-button::after {
+  content: '♡';
+  margin-left: 2px;
+  color: #b36f7a;
+  font-size: 14px;
+  transition: transform .22s ease;
+}
+.love-button:hover { transform: translateY(-2px); border-color: rgba(169,111,118,.48) !important; box-shadow: 0 10px 26px rgba(110,70,60,.15); }
+.love-button:hover::after { transform: scale(1.18); }
+
+@media (prefers-reduced-motion: reduce) {
+  .preview-mode-home::before, .preview-mode-home::after, .preview-quiet-space::before,
+  .preview-quiet-space span, .preview-quiet-space span::after, .preview-rule span { animation: none !important; }
+}
+'''.lstrip(), encoding='utf-8')
+
+          first = Path('app/first-page.css')
+          first_text = first.read_text(encoding='utf-8')
+          marker = "@import './romance-interactions.css';"
+          if marker not in first_text:
+              first.write_text(marker + "\n" + first_text, encoding='utf-8')
+
+          workflow = Path('.github/workflows/one-time-notebook-fix.yml')
+          workflow.unlink(missing_ok=True)
+
+      - name: Commit polished notebook
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/page.tsx app/first-page.css app/romance-interactions.css .github/workflows/one-time-notebook-fix.yml
+          git commit -m "fix: make memory editing work and polish love interactions"
+          git push
