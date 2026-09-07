@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import './notebook-overrides.css';
+import './notebook-polish.css';
 import './cover.css';
 import ConfirmProvider from './confirm-provider';
 
