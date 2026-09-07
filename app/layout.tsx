@@ -8,7 +8,9 @@ import './opening-page.css';
 import './preview-mode.css';
 import './preview-love-note.css';
 import './first-page.css';
+import './romance-interactions.css';
 import ConfirmProvider from './confirm-provider';
+import NotebookInteractions from './notebook-interactions';
 
 export const metadata: Metadata = {
   title: 'DEKA NOTEBOOK',
@@ -18,7 +20,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body><ConfirmProvider />{children}</body>
+      <body>
+        <ConfirmProvider />
+        <NotebookInteractions />
+        {children}
+      </body>
     </html>
   );
 }
