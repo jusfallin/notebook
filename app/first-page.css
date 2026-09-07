@@ -1,0 +1,69 @@
+/* Dedicated romantic first page: it lives INSIDE the diary, never on the mode-selection screen. */
+.dedication-page {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  overflow: hidden !important;
+  padding: 34px 54px 28px !important;
+  text-align: center !important;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(236,154,169,.10), transparent 24%),
+    radial-gradient(circle at 82% 76%, rgba(216,174,94,.08), transparent 26%),
+    #fbf7ef !important;
+  color: #5a3d34 !important;
+}
+.dedication-page::before,
+.dedication-page::after { content: none !important; display: none !important; }
+.dedication-ornament { font-size: 18px; opacity: .55; margin-bottom: 2px; }
+.dedication-heading { font-family: Georgia, 'Times New Roman', serif; font-size: 18px; letter-spacing: .18em; color: #6b4a40; }
+.dedication-heading span { letter-spacing: 0; opacity: .75; }
+.dedication-photo-frame {
+  position: relative;
+  width: min(42%, 270px);
+  aspect-ratio: 4 / 3;
+  margin: 13px auto 15px;
+  padding: 9px;
+  background: #fffaf4;
+  border: 1px solid rgba(108,75,62,.13);
+  box-shadow: 0 13px 28px rgba(70,45,35,.15), 0 2px 5px rgba(70,45,35,.10);
+  transform: rotate(-1deg);
+}
+.dedication-photo-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dedication-upload,
+.dedication-placeholder {
+  width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; color: #856b60; background: rgba(250,244,235,.72); cursor: pointer;
+}
+.dedication-upload strong, .dedication-placeholder span { font-family: Georgia, 'Times New Roman', serif; font-size: 14px; }
+.dedication-upload small, .dedication-placeholder small { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+.dedication-upload:hover { background: #fffaf4; }
+.dedication-remove-photo {
+  position: absolute; top: -10px; right: -10px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(90,61,52,.18);
+  background: #fffaf4; color: #6b4a40; display: grid; place-items: center; cursor: pointer; box-shadow: 0 4px 12px rgba(70,45,35,.14);
+}
+.dedication-rule { display: flex; align-items: center; gap: 12px; width: min(82%, 520px); margin: 0 auto 14px; color: #c08b7c; }
+.dedication-rule i { height: 1px; flex: 1; background: rgba(125,87,72,.18); }
+.dedication-lines {
+  width: min(88%, 620px); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(12px, 1.02vw, 15px); line-height: 1.48; color: #5d4138;
+}
+.dedication-lines span { display: block; min-height: 1em; }
+.dedication-editor {
+  width: min(88%, 620px); min-height: 170px; resize: vertical; border: 1px solid rgba(108,75,62,.14); background: rgba(255,252,247,.78); padding: 14px 16px;
+  color: #5a3d34; font: 14px/1.5 Georgia, 'Times New Roman', serif; outline: none; text-align: center; box-sizing: border-box;
+}
+.dedication-editor:focus { border-color: rgba(155,108,91,.4); box-shadow: 0 0 0 3px rgba(210,164,145,.10); }
+.dedication-sign { margin-top: 14px; font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-size: 13px; color: #896a5e; }
+.dedication-edit-note { margin-top: 8px; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #9a8176; }
+.dedication-footer { margin-top: auto !important; width: 100%; }
+.preview-no-page { grid-template-columns: minmax(260px, 1fr) minmax(180px, .65fr) minmax(340px, 1.15fr) !important; }
+.preview-no-page .preview-paper-wrap { display: none !important; }
+.preview-quiet-space { min-height: 420px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: rgba(235,211,192,.45); text-align: center; }
+.preview-quiet-space span { font: 46px Georgia, serif; opacity: .5; }
+.preview-quiet-space small { margin-top: 12px; font-size: 9px; letter-spacing: .22em; }
+@media (max-width: 1100px) {
+  .preview-no-page { grid-template-columns: 1fr 1fr !important; }
+  .preview-quiet-space { display: none; }
+  .dedication-photo-frame { width: min(50%, 250px); }
+}
