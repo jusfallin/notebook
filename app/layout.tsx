@@ -7,6 +7,7 @@ import './love-redesign.css';
 import './opening-page.css';
 import './preview-mode.css';
 import './preview-love-note.css';
+import './first-page.css';
 import ConfirmProvider from './confirm-provider';
 
 export const metadata: Metadata = {
