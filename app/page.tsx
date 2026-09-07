@@ -6,6 +6,7 @@ import { BookOpen, ChevronLeft, ChevronRight, ImagePlus, Music2, Volume2, Volume
 
 type Entry = { id: string; date: string; mood: string; weather: string; text: string; image: string; audio: string; };
 type NotebookState = { entries: Entry[]; dedication: string; dedicationPhoto?: string; coverOpened: boolean; };
+type Turn = { from: number; to: number; direction: 1 | -1 };
 
 const STORAGE = 'deka-notebook-v2';
 const initialEntries: Entry[] = [{ id: 'first', date: '25.07.2026', mood: '💛', weather: '☀️', text: 'The day our story quietly began.\n\nWrite everything you remember here… the place, the first words, the tiny details you never want to forget.', image: '', audio: '' }];
@@ -16,36 +17,180 @@ function uid() { return `${Date.now()}-${Math.random().toString(36).slice(2)}`; 
 
 export default function Page() {
   const [state, setState] = useState<NotebookState>({ entries: initialEntries, dedication: 'For the two of us — and every ordinary day that became a memory.', coverOpened: false });
-  const [page, setPage] = useState(0); const [direction, setDirection] = useState(1); const [edit, setEdit] = useState(false); const [sound, setSound] = useState(true); const [savePulse, setSavePulse] = useState(false); const [heartBurst, setHeartBurst] = useState(0); const [showIndex, setShowIndex] = useState(false); const [openingCover, setOpeningCover] = useState(false); const [deleteTarget, setDeleteTarget] = useState<string | null>(null); const touchStartX = useRef<number | null>(null);
-  useEffect(() => { const raw = window.localStorage.getItem(STORAGE); if (raw) { try { setState(JSON.parse(raw)); } catch {} } }, []);
-  useEffect(() => { window.localStorage.setItem(STORAGE, JSON.stringify(state)); setSavePulse(true); const id = window.setTimeout(() => setSavePulse(false), 900); return () => window.clearTimeout(id); }, [state]);
-  function playPageRustle() { if (!sound || typeof window === 'undefined') return; try { const Ctx = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext; if (!Ctx) return; const ctx = new Ctx(); const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.09), ctx.sampleRate); const data = buffer.getChannelData(0); for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2.6) * 0.035; const source = ctx.createBufferSource(); const gain = ctx.createGain(); source.buffer = buffer; gain.gain.value = 0.7; source.connect(gain); gain.connect(ctx.destination); source.start(); window.setTimeout(() => ctx.close(), 180); } catch {} }
-  useEffect(() => { const onKey = (e: KeyboardEvent) => { if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return; if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); } if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); } if (e.key.toLowerCase() === 'e') setEdit(v => !v); if (e.key.toLowerCase() === 'h') makeHearts(); if (e.key === 'Escape') { setShowIndex(false); setDeleteTarget(null); } }; window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey); });
-  const pageCount = 2 + state.entries.length, entryIndex = page >= 2 ? page - 2 : -1, activeEntry = entryIndex >= 0 ? state.entries[entryIndex] : null, isBirthday = activeEntry?.date === '09.09.2026';
-  function goTo(nextPage: number, dir: number) { const bounded = Math.max(0, Math.min(nextPage, pageCount - 1)); if (bounded === page) return; setDirection(dir); playPageRustle(); setPage(bounded); }
-  function next() { goTo(page + 1, 1); }
-  function prev() { goTo(page - 1, -1); }
-  function updateActive(patch: Partial<Entry>) { if (!activeEntry) return; setState(s => ({ ...s, entries: s.entries.map(e => e.id === activeEntry.id ? { ...e, ...patch } : e) })); }
-  function addEntry() { const nextEntry: Entry = { id: uid(), date: todayString(), mood: '✨', weather: '☀️', text: '', image: '', audio: '' }; setState(s => ({ ...s, entries: [...s.entries, nextEntry] })); setDirection(1); setPage(2 + state.entries.length); setEdit(true); }
-  function duplicateEntry() { if (!activeEntry) return; const clone = { ...activeEntry, id: uid(), date: todayString() }; setState(s => ({ ...s, entries: [...s.entries, clone] })); setDirection(1); setPage(2 + state.entries.length); }
-  function requestDelete(id: string) { if (state.entries.length <= 1) return; setDeleteTarget(id); }
-  function confirmDelete() { if (!deleteTarget || state.entries.length <= 1) return; const index = state.entries.findIndex(e => e.id === deleteTarget); if (index < 0) { setDeleteTarget(null); return; } setState(s => ({ ...s, entries: s.entries.filter(e => e.id !== deleteTarget) })); const deletedPage = index + 2; setDirection(-1); setPage(p => { const newCount = 2 + state.entries.length - 1; return Math.min(Math.max(p > deletedPage ? p - 1 : p === deletedPage ? Math.max(1, p - 1) : p, 0), newCount - 1); }); setDeleteTarget(null); }
-  function handleFile(type: 'image' | 'audio', file?: File) { if (!file || !edit) return; const reader = new FileReader(); reader.onload = () => updateActive({ [type]: String(reader.result) }); reader.readAsDataURL(file); }
+  const [page, setPage] = useState(0);
+  const [turn, setTurn] = useState<Turn | null>(null);
+  const [edit, setEdit] = useState(false);
+  const [sound, setSound] = useState(true);
+  const [savePulse, setSavePulse] = useState(false);
+  const [heartBurst, setHeartBurst] = useState(0);
+  const [showIndex, setShowIndex] = useState(false);
+  const [openingCover, setOpeningCover] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const turnTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    const raw = window.localStorage.getItem(STORAGE);
+    if (raw) { try { setState(JSON.parse(raw)); } catch {} }
+  }, []);
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE, JSON.stringify(state));
+    setSavePulse(true);
+    const id = window.setTimeout(() => setSavePulse(false), 900);
+    return () => window.clearTimeout(id);
+  }, [state]);
+  useEffect(() => () => { if (turnTimer.current) window.clearTimeout(turnTimer.current); }, []);
+
+  function playPageRustle() {
+    if (!sound || typeof window === 'undefined') return;
+    try {
+      const Ctx = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.12), ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2.2) * 0.028;
+      const source = ctx.createBufferSource();
+      const filter = ctx.createBiquadFilter();
+      const gain = ctx.createGain();
+      filter.type = 'bandpass'; filter.frequency.value = 2200; filter.Q.value = 0.6;
+      source.buffer = buffer; gain.gain.value = 0.55;
+      source.connect(filter); filter.connect(gain); gain.connect(ctx.destination); source.start();
+      window.setTimeout(() => ctx.close(), 220);
+    } catch {}
+  }
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+      if (e.key.toLowerCase() === 'e') setEdit(v => !v);
+      if (e.key.toLowerCase() === 'h') makeHearts();
+      if (e.key === 'Escape') { setShowIndex(false); setDeleteTarget(null); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  const pageCount = 2 + state.entries.length;
+  const shownPage = turn?.to ?? page;
+  const shownEntryIndex = shownPage >= 2 ? shownPage - 2 : -1;
+  const shownEntry = shownEntryIndex >= 0 ? state.entries[shownEntryIndex] : null;
+  const shownBirthday = shownEntry?.date === '09.09.2026';
+  const title = useMemo(() => shownPage === 0 ? 'DEKA NOTEBOOK' : shownPage === 1 ? 'A LITTLE PLACE FOR US' : shownEntry?.date ?? '', [shownPage, shownEntry]);
+
+  function startTurn(target: number) {
+    if (turn || target < 1 || target >= pageCount || target === page) return;
+    const direction: 1 | -1 = target > page ? 1 : -1;
+    playPageRustle();
+    setTurn({ from: page, to: target, direction });
+    if (turnTimer.current) window.clearTimeout(turnTimer.current);
+    turnTimer.current = window.setTimeout(() => {
+      setPage(target);
+      setTurn(null);
+    }, 860);
+  }
+  function next() {
+    if (page === 0) { openCover(); return; }
+    startTurn(page + 1);
+  }
+  function prev() {
+    if (page <= 1) { if (page === 1) closeToCover(); return; }
+    startTurn(page - 1);
+  }
+  function updateActive(patch: Partial<Entry>) {
+    const entry = state.entries[page - 2];
+    if (!entry) return;
+    setState(s => ({ ...s, entries: s.entries.map(e => e.id === entry.id ? { ...e, ...patch } : e) }));
+  }
+  function addEntry() {
+    const nextEntry: Entry = { id: uid(), date: todayString(), mood: '✨', weather: '☀️', text: '', image: '', audio: '' };
+    setState(s => ({ ...s, entries: [...s.entries, nextEntry] }));
+    setEdit(true);
+    window.setTimeout(() => startTurn(pageCount), 20);
+  }
+  function duplicateEntry() {
+    const entry = state.entries[page - 2];
+    if (!entry) return;
+    const clone = { ...entry, id: uid(), date: todayString() };
+    setState(s => ({ ...s, entries: [...s.entries, clone] }));
+    setEdit(true);
+    window.setTimeout(() => startTurn(pageCount), 20);
+  }
+  function requestDelete(id: string) { if (state.entries.length > 1) setDeleteTarget(id); }
+  function confirmDelete() {
+    if (!deleteTarget || state.entries.length <= 1) return;
+    const index = state.entries.findIndex(e => e.id === deleteTarget);
+    if (index < 0) { setDeleteTarget(null); return; }
+    setState(s => ({ ...s, entries: s.entries.filter(e => e.id !== deleteTarget) }));
+    const deletedPage = index + 2;
+    if (page === deletedPage) setPage(Math.max(1, Math.min(page, pageCount - 2)));
+    else if (page > deletedPage) setPage(page - 1);
+    setDeleteTarget(null);
+  }
+  function handleFile(type: 'image' | 'audio', file?: File) {
+    if (!file || !edit) return;
+    const reader = new FileReader();
+    reader.onload = () => updateActive({ [type]: String(reader.result) });
+    reader.readAsDataURL(file);
+  }
   function makeHearts() { setHeartBurst(v => v + 1); window.setTimeout(() => setHeartBurst(v => v + 1), 700); }
   function removeEntryMedia(type: 'image' | 'audio') { updateActive({ [type]: '' }); }
-  function openCover() { if (openingCover) return; setOpeningCover(true); setState(s => ({ ...s, coverOpened: true })); window.setTimeout(() => { setDirection(1); setPage(1); setOpeningCover(false); }, 620); }
-  const title = useMemo(() => page === 0 ? 'DEKA NOTEBOOK' : page === 1 ? 'A LITTLE PLACE FOR US' : activeEntry?.date ?? '', [page, activeEntry]);
-  const transition = { duration: 0.78, ease: [0.22, 0.76, 0.24, 1] as const };
-  return <main className="scene" aria-label="Deka Notebook" onTouchStart={e => { touchStartX.current = e.changedTouches[0].clientX; }} onTouchEnd={e => { if (touchStartX.current === null) return; const dx = e.changedTouches[0].clientX - touchStartX.current; if (Math.abs(dx) > 50) (dx < 0 ? next : prev)(); touchStartX.current = null; }}>
-    <div className="ambient" /><div className="heart-layer" aria-hidden="true">{heartBurst > 0 && Array.from({ length: 14 }, (_, i) => <motion.span key={`${heartBurst}-${i}`} initial={{ x: '50%', y: '58%', scale: 0, opacity: 0 }} animate={{ x: `${12 + (i * 67) % 76}%`, y: `${18 + (i * 31) % 68}%`, scale: [0, 1.1, .8], opacity: [0, 1, 0] }} transition={{ duration: 1.8, delay: (i % 5) * .05 }} className="floating-heart">{i % 3 === 0 ? '❤️' : '♥'}</motion.span>)}</div>
-    <header className="toolbar"><div className="brand"><Heart size={16} fill="currentColor" /> DEKA</div><div className="toolbar-center"><span className="title-dot" /> {title} <span className="title-dot" /></div><div className="toolbar-actions"><button onClick={makeHearts} aria-label="send love" title="Send love"><Heart size={17} fill="currentColor" /></button><button onClick={() => setShowIndex(v => !v)} aria-label="open notebook index" title="Open pages"><BookOpen size={17} /></button><button onClick={() => setSound(v => !v)} aria-label="toggle page sounds" title="Page sound">{sound ? <Volume2 size={18}/> : <VolumeX size={18}/>}</button><button onClick={() => setEdit(v => !v)}>{edit ? 'Done' : 'Edit'}</button><span className="saved">{savePulse ? 'Saved ♥' : 'Auto-saved'}</span></div></header>
-    <AnimatePresence>{showIndex && <motion.aside className="index-panel" initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}><div className="index-head"><span>OUR STORY</span><button onClick={() => setShowIndex(false)} aria-label="close pages"><X size={17}/></button></div><button className={`index-item ${page === 0 ? 'active' : ''}`} onClick={() => {setDirection(-1);setPage(0);setShowIndex(false)}}><span>Cover</span><small>DEKA NOTEBOOK</small></button><button className={`index-item ${page === 1 ? 'active' : ''}`} onClick={() => {setDirection(page>1?-1:1);setPage(1);setShowIndex(false)}}><span>Dedication</span><small>A little place for us</small></button>{state.entries.map((e,i)=><div className="index-row" key={e.id}><button className={`index-item ${page === i+2 ? 'active':''}`} onClick={()=>{setDirection(i+2>page?1:-1);setPage(i+2);setShowIndex(false)}}><span>{e.date} <b>{e.mood}</b></span><small>{i===0?'Where it all began':'A page from our life'}</small></button><button className="index-delete" type="button" aria-label={`remove page ${e.date}`} title="Remove this page" onClick={()=>requestDelete(e.id)} disabled={state.entries.length<=1}><Trash2 size={14}/></button></div>)}</motion.aside>}</AnimatePresence>
-    <section className="desk" aria-label="digital notebook"><AnimatePresence mode="wait" custom={direction}>{page === 0 ? <motion.button key="cover" className={`cover ${state.coverOpened || openingCover?'opened':''}`} initial={{rotateY:-10,y:20,scale:.97}} animate={{rotateY:openingCover?-72:0,y:0,scale:openingCover?.985:1}} exit={{rotateY:direction>0?88:-88,x:direction>0?80:-80,opacity:0,transition:{duration:.72,ease:[.22,1,.36,1]}}} transition={{duration:openingCover?.62:.45,ease:[.22,1,.36,1]}} onClick={openCover} disabled={openingCover} aria-label="Open the DEKA diary">
+  function openCover() {
+    if (openingCover || page !== 0) return;
+    setOpeningCover(true);
+    setState(s => ({ ...s, coverOpened: true }));
+    window.setTimeout(() => { setPage(1); setOpeningCover(false); }, 650);
+  }
+  function closeToCover() {
+    if (openingCover || turn) return;
+    setOpeningCover(true);
+    setState(s => ({ ...s, coverOpened: false }));
+    window.setTimeout(() => { setPage(0); setOpeningCover(false); }, 560);
+  }
+
+  function renderCover() {
+    return <motion.button key="cover" className={`cover ${state.coverOpened || openingCover ? 'opened' : ''}`} initial={{ rotateY: -8, y: 14, scale: .985 }} animate={{ rotateY: openingCover ? -72 : 0, y: 0, scale: openingCover ? .985 : 1 }} transition={{ duration: openingCover ? .65 : .35, ease: [0.2, 0.75, 0.2, 1] }} onClick={openCover} disabled={openingCover} aria-label="Open the DEKA diary">
       <span className="cover-rim"/><span className="cover-stitch"/><span className="cover-corner top-left"/><span className="cover-corner top-right"/><span className="cover-corner bottom-left"/><span className="cover-corner bottom-right"/><span className="cover-band"/>
       <div className="cover-small">PRIVATE JOURNAL</div><div className="cover-monogram">DB</div><div className="cover-title">DEKA</div><div className="cover-rule"><i/><span>♡</span><i/></div><div className="cover-subtitle">OUR DAYS · OUR WORDS · OUR MEMORIES</div><div className="cover-name">only for my girl <span>♥</span></div><div className="cover-footer"><span>25 · 07 · 2026</span><span>VOL. I</span></div><span className="ribbon"/><span className="cover-edge-label">OURS</span><span className="cover-open-hint">tap to open · our story begins here</span>
-    </motion.button> : <motion.div key={page} custom={direction} className={`book-wrap page-direction-${direction > 0 ? 'forward' : 'back'}`} initial={{rotateY:direction>0?16:-16,x:direction>0?34:-34,opacity:.18,filter:'blur(1px)'}} animate={{rotateY:0,x:0,opacity:1,filter:'blur(0px)'}} exit={{rotateY:direction>0?-13:13,x:direction>0?-34:34,opacity:0,filter:'blur(.7px)',transition}} transition={transition}><article className={`paper ${isBirthday?'birthday-paper':''}`}>
-      <div className="paper-shadow"/><div className="page-curl"/><div className="margin-line"/>{page===1?<section className="dedication spread"><div className="eyebrow"><span>✦</span> THE DEDICATION <span>✦</span></div><h1>A little place for us.</h1><p className="handwritten">For the two of us —<br/>for every laugh, every tiny fight,<br/>every “remember when…”,<br/>and every ordinary day worth keeping.</p><div className="photo-frame">{state.dedicationPhoto?<><img src={state.dedicationPhoto} alt="our favorite photograph"/>{edit&&<button type="button" className="remove-photo" aria-label="remove dedication photo" onClick={()=>setState(s=>({...s,dedicationPhoto:''}))}><Trash2 size={15}/></button>}</>:<><label className="photo-upload" htmlFor="dedication-photo"><Camera size={25}/><span>{edit ? 'Add our favorite photograph' : 'Favorite photograph'}</span></label><input id="dedication-photo" type="file" accept="image/*" hidden disabled={!edit} onChange={e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>setState(s=>({...s,dedicationPhoto:String(r.result)}));r.readAsDataURL(f)}}/></>}</div>{!state.dedicationPhoto&&edit&&<textarea className="dedication-note" value={state.dedication} onChange={e=>setState(s=>({...s,dedication:e.target.value}))}/>}<div className="flourish">❦</div><button className="text-link" onClick={next}>Begin the story →</button></section>:activeEntry?<section className="entry spread">{isBirthday&&<motion.div className="birthday-banner" initial={{y:-15,opacity:0}} animate={{y:0,opacity:1}}><Sparkles size={15}/> 09.09.2026 · A SPECIAL PAGE FOR YOU <Sparkles size={15}/></motion.div>}<div className="entry-topline"><div>{edit?<input className="date-input" value={activeEntry.date} onChange={e=>updateActive({date:e.target.value})}/>:<div className="date-display">{activeEntry.date}</div>}<div className="entry-label">{isBirthday?'THE DAY WE CELEBRATE YOU':'A PAGE FROM OUR LIFE'}</div></div><div className="stamps"><button className="stamp" title="change mood" onClick={()=>{const idx=moods.indexOf(activeEntry.mood);updateActive({mood:moods[(idx+1)%moods.length]})}}>{activeEntry.mood}</button><button className="stamp" title="change weather" onClick={()=>{const idx=weather.indexOf(activeEntry.weather);updateActive({weather:weather[(idx+1)%weather.length]})}}>{activeEntry.weather}</button></div></div><div className="rule"/>{isBirthday&&<p className="birthday-line">Happy birthday, my girl. From this page onward, we write our story together. ♡</p>}{edit?<textarea className="entry-editor" value={activeEntry.text} placeholder="Write today's memory…" onChange={e=>updateActive({text:e.target.value})}/>:<div className="entry-text">{activeEntry.text}</div>}<div className="media-grid"><div className="media-card media-photo">{activeEntry.image?<><img src={activeEntry.image} alt="memory"/>{edit&&<button type="button" className="remove-media" aria-label="remove photo" onClick={()=>removeEntryMedia('image')}><Trash2 size={14}/></button>}</>:<label className="media-upload" htmlFor={`photo-${activeEntry.id}`}><ImagePlus size={22}/><span>{edit ? 'Add photo' : 'Photo'}</span></label>}<input id={`photo-${activeEntry.id}`} type="file" accept="image/*" hidden disabled={!edit} onChange={e=>handleFile('image',e.target.files?.[0])}/></div><div className="media-card audio-card">{activeEntry.audio?<><audio controls src={activeEntry.audio}/>{edit&&<button type="button" className="remove-media" aria-label="remove audio" onClick={()=>removeEntryMedia('audio')}><Trash2 size={14}/></button>}</>:<label className="media-upload" htmlFor={`audio-${activeEntry.id}`}><Music2 size={22}/><span>{edit ? 'Add song / voice' : 'Song / voice note'}</span></label>}<input id={`audio-${activeEntry.id}`} type="file" accept="audio/*" hidden disabled={!edit} onChange={e=>handleFile('audio',e.target.files?.[0])}/></div></div><div className="page-footer"><span>{entryIndex+1} / {state.entries.length}</span><span className="footer-heart">♡</span>{edit&&<><button className="duplicate" onClick={duplicateEntry}>Duplicate page</button><button className="delete-page" onClick={()=>activeEntry&&requestDelete(activeEntry.id)} disabled={state.entries.length<=1} title={state.entries.length<=1?'Keep at least one memory page':'Remove this page'}><Trash2 size={14}/> Remove page</button></>}</div></section>:null}</article></motion.div>}</AnimatePresence><button className="nav prev" onClick={prev} disabled={page===0} aria-label="previous page"><ChevronLeft size={24}/></button><button className="nav next" onClick={next} disabled={page===pageCount-1} aria-label="next page"><ChevronRight size={24}/></button></section>
-    <footer className="bottom-bar"><div className="progress"><span>{page+1}</span><i/><span>{pageCount}</span></div>{page>=1&&<button className="new-entry" onClick={addEntry}><Plus size={18}/> New page</button>}<button className="love-button" onClick={makeHearts}><Wand2 size={15}/> sprinkle love</button><div className="hint"><CalendarDays size={15}/> 25.07.2026 → forever</div></footer>
-    <AnimatePresence>{deleteTarget&&<motion.div className="notebook-confirm-backdrop" role="presentation" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onMouseDown={e=>{if(e.currentTarget===e.target)setDeleteTarget(null)}}><motion.div className="notebook-confirm" role="dialog" aria-modal="true" aria-labelledby="delete-title" initial={{y:18,scale:.96,opacity:0}} animate={{y:0,scale:1,opacity:1}} exit={{y:10,scale:.97,opacity:0}} transition={{duration:.22}}><div className="notebook-confirm-icon">♡</div><div className="notebook-confirm-kicker">PAGE MANAGEMENT</div><h2 id="delete-title">Remove this memory?</h2><p>This page from <strong>{state.entries.find(e=>e.id===deleteTarget)?.date}</strong> will be removed from your notebook.</p><div className="notebook-confirm-actions"><button onClick={()=>setDeleteTarget(null)}>Keep page</button><button onClick={confirmDelete}>Remove memory</button></div><button className="notebook-confirm-close" onClick={()=>setDeleteTarget(null)} aria-label="close confirmation"><X size={15}/></button></motion.div></motion.div>}</AnimatePresence>
+    </motion.button>;
+  }
+
+  function renderPageContent(index: number) {
+    const entryIndex = index - 2;
+    const entry = entryIndex >= 0 ? state.entries[entryIndex] : null;
+    const birthday = entry?.date === '09.09.2026';
+    if (index === 1) return <section className="dedication spread"><div className="eyebrow"><span>✦</span> THE DEDICATION <span>✦</span></div><h1>A little place for us.</h1><p className="handwritten">For the two of us —<br/>for every laugh, every tiny fight,<br/>every “remember when…”,<br/>and every ordinary day worth keeping.</p><div className="photo-frame">{state.dedicationPhoto ? <><img src={state.dedicationPhoto} alt="our favorite photograph"/>{edit && <button type="button" className="remove-photo" aria-label="remove dedication photo" onClick={() => setState(s => ({ ...s, dedicationPhoto: '' }))}><Trash2 size={15}/></button>}</> : <><label className="photo-upload" htmlFor="dedication-photo"><Camera size={25}/><span>{edit ? 'Add our favorite photograph' : 'Favorite photograph'}</span></label><input id="dedication-photo" type="file" accept="image/*" hidden disabled={!edit} onChange={e => { const f = e.target.files?.[0]; if (!f) return; const r = new FileReader(); r.onload = () => setState(s => ({ ...s, dedicationPhoto: String(r.result) })); r.readAsDataURL(f); }}/></>}</div>{!state.dedicationPhoto && edit && <textarea className="dedication-note" value={state.dedication} onChange={e => setState(s => ({ ...s, dedication: e.target.value }))}/>}<div className="flourish">❦</div><button className="text-link" onClick={next}>Begin the story →</button></section>;
+    if (!entry) return null;
+    return <section className="entry spread">{birthday && <motion.div className="birthday-banner" initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}><Sparkles size={15}/> 09.09.2026 · A SPECIAL PAGE FOR YOU <Sparkles size={15}/></motion.div>}<div className="entry-topline"><div>{edit && index === page ? <input className="date-input" value={entry.date} onChange={e => updateActive({ date: e.target.value })}/> : <div className="date-display">{entry.date}</div>}<div className="entry-label">{birthday ? 'THE DAY WE CELEBRATE YOU' : 'A PAGE FROM OUR LIFE'}</div></div><div className="stamps"><button className="stamp" title="Change mood" onClick={() => { if (index !== page) return; const i = moods.indexOf(entry.mood); updateActive({ mood: moods[(i + 1) % moods.length] }); }}>{entry.mood}</button><button className="stamp" title="Change weather" onClick={() => { if (index !== page) return; const i = weather.indexOf(entry.weather); updateActive({ weather: weather[(i + 1) % weather.length] }); }}>{entry.weather}</button></div></div><div className="rule"/>{birthday && <p className="birthday-line">Happy birthday, my girl. From this page onward, we write our story together. ♡</p>}{edit && index === page ? <textarea className="entry-editor" value={entry.text} placeholder="Write today's memory…" onChange={e => updateActive({ text: e.target.value })}/> : <div className="entry-text">{entry.text}</div>}<div className="media-grid"><div className="media-card media-photo">{entry.image ? <><img src={entry.image} alt="memory"/>{edit && index === page && <button type="button" className="remove-media" aria-label="remove photo" onClick={() => removeEntryMedia('image')}><Trash2 size={14}/></button>}</> : <label className="media-upload" htmlFor={`image-${entry.id}`}><ImagePlus size={22}/><span>{edit && index === page ? 'Add photo' : 'Photo'}</span></label>}{edit && index === page && <input id={`image-${entry.id}`} type="file" accept="image/*" hidden onChange={e => handleFile('image', e.target.files?.[0])}/>}</div><div className="media-card audio-card">{entry.audio ? <><audio controls src={entry.audio}/>{edit && index === page && <button type="button" className="remove-media" aria-label="remove audio" onClick={() => removeEntryMedia('audio')}><Trash2 size={14}/></button>}</> : <label className="media-upload" htmlFor={`audio-${entry.id}`}><Music2 size={22}/><span>{edit && index === page ? 'Add song / voice' : 'Song / voice note'}</span></label>}{edit && index === page && <input id={`audio-${entry.id}`} type="file" accept="audio/*" hidden onChange={e => handleFile('audio', e.target.files?.[0])}/>}</div></div><div className="page-footer"><span>{entryIndex + 1} / {state.entries.length}</span><span className="footer-heart">♡</span>{edit && index === page && <><button className="duplicate" onClick={duplicateEntry}>Duplicate page</button><button className="delete-page" onClick={() => requestDelete(entry.id)} disabled={state.entries.length <= 1} title="Remove this page"><Trash2 size={14}/> Remove page</button></>}</div></section>;
+  }
+
+  const baseIndex = turn?.to ?? page;
+  const frontIndex = turn?.from ?? page;
+  return <main className="scene desktop-notebook" aria-label="Deka Notebook" onTouchStart={e => { touchStartX.current = e.changedTouches[0].clientX; }} onTouchEnd={e => { if (touchStartX.current === null) return; const dx = e.changedTouches[0].clientX - touchStartX.current; if (Math.abs(dx) > 60) (dx < 0 ? next : prev)(); touchStartX.current = null; }}>
+    <div className="ambient"/><div className="heart-layer" aria-hidden="true">{heartBurst > 0 && Array.from({ length: 14 }, (_, i) => <motion.span key={`${heartBurst}-${i}`} initial={{ x: '50%', y: '58%', scale: 0, opacity: 0 }} animate={{ x: `${12 + (i * 67) % 76}%`, y: `${18 + (i * 31) % 68}%`, scale: [0, 1.1, .8], opacity: [0, 1, 0] }} transition={{ duration: 1.8, delay: (i % 5) * .05 }} className="floating-heart">{i % 3 === 0 ? '❤️' : '♥'}</motion.span>)}</div>
+    <header className="toolbar"><div className="brand"><Heart size={16} fill="currentColor"/> DEKA</div><div className="toolbar-center"><span className="title-dot"/> {title} <span className="title-dot"/></div><div className="toolbar-actions"><button onClick={makeHearts} aria-label="send love" title="Send love"><Heart size={17} fill="currentColor"/></button><button onClick={() => setShowIndex(v => !v)} aria-label="open notebook index" title="Open pages"><BookOpen size={17}/></button><button onClick={() => setSound(v => !v)} aria-label="toggle page sound" title="Page sound">{sound ? <Volume2 size={18}/> : <VolumeX size={18}/>}</button><button onClick={() => setEdit(v => !v)}>{edit ? 'Done' : 'Edit'}</button><span className="saved">{savePulse ? 'Saved ♥' : 'Auto-saved'}</span></div></header>
+    <AnimatePresence>{showIndex && <motion.aside className="index-panel" initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}><div className="index-head"><span>OUR STORY</span><button onClick={() => setShowIndex(false)} aria-label="close pages"><X size={17}/></button></div><button className={`index-item ${page === 0 ? 'active' : ''}`} onClick={closeToCover}><span>Cover</span><small>DEKA NOTEBOOK</small></button><button className={`index-item ${page === 1 ? 'active' : ''}`} onClick={() => { setShowIndex(false); if (page !== 1) startTurn(1); }}><span>Dedication</span><small>A little place for us</small></button>{state.entries.map((e, i) => <div className="index-row" key={e.id}><button className={`index-item ${page === i + 2 ? 'active' : ''}`} onClick={() => { setShowIndex(false); if (page !== i + 2) startTurn(i + 2); }}><span>{e.date} <b>{e.mood}</b></span><small>{i === 0 ? 'Where it all began' : 'A page from our life'}</small></button><button className="index-delete" type="button" aria-label={`remove page ${e.date}`} title="Remove this page" onClick={() => requestDelete(e.id)} disabled={state.entries.length <= 1}><Trash2 size={14}/></button></div>)}</motion.aside>}</AnimatePresence>
+
+    <section className="desk physical-desk" aria-label="physical notebook">
+      {page === 0 && !turn ? renderCover() : <div className="book-stage">
+        <div className="book-stack" aria-live="polite">
+          <article className={`paper paper-base ${shownBirthday ? 'birthday-paper' : ''}`}>{renderPageContent(baseIndex)}</article>
+          {turn && <div className={`turn-sheet ${turn.direction > 0 ? 'turn-forward' : 'turn-backward'}`}>
+            <article className="paper turn-front">{renderPageContent(frontIndex)}</article>
+            <article className="paper turn-back">{renderPageContent(baseIndex)}</article>
+            <span className="turn-shadow" aria-hidden="true"/>
+            <span className="turn-highlight" aria-hidden="true"/>
+          </div>}
+        </div>
+        <div className="spine-shadow" aria-hidden="true"/>
+      </div>}
+      <button className="nav prev" onClick={prev} disabled={page === 0 || !!turn} aria-label="previous page" title="Previous page"><ChevronLeft size={25}/></button><button className="nav next" onClick={next} disabled={page === pageCount - 1 || !!turn} aria-label="next page" title="Next page"><ChevronRight size={25}/></button>
+    </section>
+
+    <footer className="bottom-bar"><div className="progress"><span>{shownPage + 1}</span><i/><span>{pageCount}</span></div>{page >= 1 && !turn && <button className="new-entry" onClick={addEntry}><Plus size={18}/> New page</button>}<button className="love-button" onClick={makeHearts}><Wand2 size={15}/> sprinkle love</button><div className="hint"><CalendarDays size={15}/> 25.07.2026 → forever</div></footer>
+
+    <AnimatePresence>{deleteTarget && <motion.div className="notebook-confirm-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={e => { if (e.currentTarget === e.target) setDeleteTarget(null); }}><motion.div className="notebook-confirm" initial={{ y: 18, scale: .97 }} animate={{ y: 0, scale: 1 }} exit={{ y: 10, scale: .98 }}><div className="notebook-confirm-icon">♢</div><div className="notebook-confirm-kicker">REMOVE MEMORY</div><h2>Let this page go?</h2><p>The memory dated <strong>{state.entries.find(e => e.id === deleteTarget)?.date}</strong> will be removed from this notebook.</p><div className="notebook-confirm-actions"><button type="button" onClick={() => setDeleteTarget(null)}>Keep page</button><button type="button" onClick={confirmDelete}>Remove page</button></div></motion.div></motion.div>}</AnimatePresence>
   </main>;
 }
