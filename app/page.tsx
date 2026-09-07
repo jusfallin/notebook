@@ -74,7 +74,7 @@ export default function Page() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.ctrlKey && e.key.toLowerCase() === 's') { e.preventDefault(); if (mode === 'studio') saveChanges(); return; }
+      if (e.ctrlKey && e.key.toLowerCase() === 's') { e.preventDefault(); if (mode === 'studio' && dirty) saveChanges(); return; }
       if (mode === 'reader') {
         if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
         if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
@@ -125,12 +125,14 @@ export default function Page() {
     if (openingCover || turn) return;
     setOpeningCover(true);
     setMode('home');
+    setEdit(false);
+    setDirty(false);
     setTimeout(() => { setPage(0); setOpeningCover(false); }, 560);
   }
 
   function enterModeHome() { setPage(2); setMode('home'); setEdit(false); setShowIndex(false); }
-  function enterReader(entryIndex = 0) { setPage(entryPage(entryIndex)); setMode('reader'); setEdit(false); }
-  function enterStudio(entryIndex = 0) { setPage(entryPage(entryIndex)); setMode('studio'); setEdit(true); }
+  function enterReader(entryIndex = 0) { setPage(entryPage(entryIndex)); setMode('reader'); setEdit(false); setDirty(false); }
+  function enterStudio(entryIndex = 0) { setPage(entryPage(entryIndex)); setMode('studio'); setEdit(true); setDirty(false); }
   function selectEntry(i: number, targetMode: Mode = mode) { setPage(entryPage(i)); setMode(targetMode); setEdit(targetMode === 'studio'); setShowIndex(false); }
   function selectOpeningPage() { setPage(1); setMode('studio'); setEdit(true); }
 
@@ -138,6 +140,12 @@ export default function Page() {
     const entry = state.entries[page - 3];
     if (!entry) return;
     patchState(s => ({ ...s, entries: s.entries.map(e => e.id === entry.id ? { ...e, ...patch } : e) }));
+  }
+
+  function updateOpening(patch: Partial<Entry>) {
+    const first = state.entries[0];
+    if (!first) return;
+    patchState(s => ({ ...s, entries: s.entries.map((e, i) => i === 0 ? { ...e, ...patch } : e) }));
   }
 
   function addEntry() {
@@ -170,15 +178,16 @@ export default function Page() {
     reader.readAsDataURL(file);
   }
 
-  function handleDedicationFile(file?: File) {
+  function handleOpeningImage(file?: File) {
     if (!file || !edit) return;
     const reader = new FileReader();
-    reader.onload = () => patchState(s => ({ ...s, dedicationPhoto: String(reader.result) }));
+    reader.onload = () => updateOpening({ image: String(reader.result) });
     reader.readAsDataURL(file);
   }
 
   function makeHearts() { setHeartBurst(v => v + 1); window.setTimeout(() => setHeartBurst(v => v + 1), 700); }
   function removeEntryMedia(type: 'image' | 'audio') { updateActive({ [type]: '' }); }
+  function removeOpeningMedia(type: 'image' | 'audio') { updateOpening({ [type]: '' }); }
 
   function renderCover() {
     return <motion.button key="cover" className={`cover ${openingCover ? 'opened' : ''}`} initial={{ rotateY: -8, y: 14, scale: .985 }} animate={{ rotateY: openingCover ? -72 : 0, y: 0, scale: openingCover ? .985 : 1 }} transition={{ duration: openingCover ? .65 : .35, ease: [0.2, 0.75, 0.2, 1] }} onClick={openCover} disabled={openingCover} aria-label="Open the DEKA diary">
@@ -188,34 +197,28 @@ export default function Page() {
   }
 
   function renderOpeningPage() {
-    return <section className="opening-page spread">
-      <div className="opening-decor opening-decor-one">♡</div><div className="opening-decor opening-decor-two">✦</div>
-      <div className="opening-kicker">THE FIRST PAGE · 25 JULY 2026</div>
-      <div className="opening-layout">
-        <div className="opening-photo-wrap">
-          <div className="opening-photo-shadow"/>
-          <div className="opening-photo-frame">
-            {state.dedicationPhoto ? <><img src={state.dedicationPhoto} alt="our favorite photograph"/>{edit && <button type="button" className="opening-remove-photo" onClick={() => patchState(s => ({ ...s, dedicationPhoto: '' }))}><Trash2 size={14}/></button>}</> : <label className="opening-photo-placeholder" htmlFor="opening-photo"><Camera size={27}/><span>{edit ? 'Add our favorite photo' : 'Our favorite photo'}</span><small>{edit ? 'Choose a picture of us' : 'A photograph belongs here'}</small></label>}
-            {edit && <input id="opening-photo" type="file" accept="image/*" hidden onChange={e => handleDedicationFile(e.target.files?.[0])}/>}<span className="photo-corner-mark">♡</span>
-          </div>
-          <div className="opening-photo-caption">a little proof that this was real</div>
-        </div>
-        <div className="opening-copy">
-          <div className="opening-ornament">— with love, always —</div>
-          <h1>And then,<br/><em>there was us.</em></h1>
-          <div className="opening-rule"><span>♥</span></div>
-          {edit ? <textarea className="opening-editor" value={state.dedication} onChange={e => patchState(s => ({ ...s, dedication: e.target.value }))}/> : <p className="opening-letter">{state.dedication}</p>}
-          <p className="opening-small-note">Some stories are written in chapters.<br/>Ours can be written in ordinary days.</p>
-          <div className="opening-signature">— yours, forever <span>♡</span></div>
-        </div>
+    const first = state.entries[0];
+    if (!first) return null;
+    const canEdit = mode === 'studio' && edit && page === 1;
+    return <section className="opening-page entry-like-opening spread">
+      <div className="opening-soft-corner opening-soft-corner-a"/><div className="opening-soft-corner opening-soft-corner-b"/>
+      <div className="entry-topline opening-entry-topline">
+        <div>{canEdit ? <input className="date-input" value={first.date} onChange={e => updateOpening({ date: e.target.value })}/> : <div className="date-display">{first.date}</div>}<div className="entry-label">A PAGE FROM OUR LIFE</div></div>
+        <div className="stamps"><button className="stamp" disabled={!canEdit} onClick={() => { const i = moods.indexOf(first.mood); updateOpening({ mood: moods[(i + 1) % moods.length] }); }}>{first.mood}</button><button className="stamp" disabled={!canEdit} onClick={() => { const i = weather.indexOf(first.weather); updateOpening({ weather: weather[(i + 1) % weather.length] }); }}>{first.weather}</button></div>
       </div>
-      <div className="opening-bottom"><span>DEKA · PRIVATE · OURS</span><button onClick={() => { if (dirty && mode === 'studio') saveChanges(); setPage(2); setMode('home'); setEdit(false); }}>TURN THE PAGE <ArrowRight size={15}/></button></div>
+      <div className="rule"/>
+      {canEdit ? <textarea className="entry-editor opening-entry-editor" value={first.text} placeholder="Write everything you remember here…" onChange={e => updateOpening({ text: e.target.value })}/> : <div className="entry-text opening-entry-text">{first.text}</div>}
+      <div className="opening-memory-grid media-grid">
+        <div className="media-card media-photo">{first.image ? <><img src={first.image} alt="our first memory"/>{canEdit && <button type="button" className="remove-media" onClick={() => removeOpeningMedia('image')}><Trash2 size={14}/></button>}</> : canEdit ? <label className="media-upload" htmlFor="opening-image"><ImagePlus size={22}/><span>Add our photo</span></label> : <div className="media-empty"><ImagePlus size={20}/><span>No photo yet</span></div>}{canEdit && <input id="opening-image" type="file" accept="image/*" hidden onChange={e => handleOpeningImage(e.target.files?.[0])}/>}</div>
+        <div className="media-card audio-card">{first.audio ? <><audio controls src={first.audio}/>{canEdit && <button type="button" className="remove-media" onClick={() => removeOpeningMedia('audio')}><Trash2 size={14}/></button>}</> : canEdit ? <label className="media-upload" htmlFor="opening-audio"><Music2 size={22}/><span>Add song / voice</span></label> : <div className="media-empty"><Music2 size={20}/><span>No audio yet</span></div>}{canEdit && <input id="opening-audio" type="file" accept="audio/*" hidden onChange={e => { const f = e.target.files?.[0]; if (!f) return; const r = new FileReader(); r.onload = () => updateOpening({ audio: String(r.result) }); r.readAsDataURL(f); }}/>}</div>
+      </div>
+      <div className="page-footer opening-footer"><span>Memory 1 of {state.entries.length}</span><span className="footer-heart">♡</span></div>
     </section>;
   }
 
   function renderModeHome() {
     const latest = state.entries[state.entries.length - 1];
-    return <main className="mode-home romantic-mode-home" aria-label="Choose notebook mode"><div className="mode-home-glow"/><header className="mode-home-head"><div className="mode-brand"><Heart size={17} fill="currentColor"/> DEKA</div><div className="mode-meta">OUR PRIVATE NOTEBOOK · 25.07.2026 → FOREVER</div><button className="mode-heart" onClick={makeHearts}><Heart size={17} fill="currentColor"/></button></header><section className="mode-hero"><div className="mode-kicker">THE NEXT PAGE IS OURS</div><h1>How do you want to<br/><em>keep us?</em></h1><p>Read the memories we've already kept.<br/>Or sit down and write the next one together.</p></section><section className="mode-choices"><motion.button className="mode-card reader-card romantic-mode-card" whileHover={{ y: -8 }} whileTap={{ scale: .985 }} onClick={() => enterReader(0)}><div className="mode-card-top"><span>01 · RELIVE</span><Eye size={18}/></div><div className="mode-card-illustration"><BookOpen size={68} strokeWidth={1.15}/><span className="card-page-lines"/></div><div className="mode-card-copy"><h2>Our Diary</h2><p>Turn through the pages we've already filled with memories, photos, little details and days worth keeping.</p><strong>READ OUR STORY <ChevronRight size={16}/></strong></div></motion.button><motion.button className="mode-card studio-card romantic-mode-card" whileHover={{ y: -8 }} whileTap={{ scale: .985 }} onClick={() => enterStudio(state.entries.length - 1)}><div className="mode-card-top"><span>02 · CREATE</span><PenLine size={18}/></div><div className="mode-card-illustration"><PenLine size={64} strokeWidth={1.15}/><span className="studio-paper-lines"/></div><div className="mode-card-copy"><h2>Write With Us</h2><p>Write, edit, add photos, attach a song or voice note, and make another page for the story.</p><strong>OPEN WRITING DESK <ChevronRight size={16}/></strong></div></motion.button></section><footer className="mode-home-footer"><span>{state.entries.length} {state.entries.length === 1 ? 'memory' : 'memories'} kept</span><span>latest · {latest?.date}</span><button onClick={() => { setPage(1); setMode('home'); }}>BACK TO OPENING PAGE</button></footer></main>;
+    return <main className="mode-home romantic-mode-home" aria-label="Choose notebook mode"><div className="mode-home-glow"/><header className="mode-home-head"><div className="mode-brand"><Heart size={17} fill="currentColor"/> DEKA</div><div className="mode-meta">OUR PRIVATE NOTEBOOK · 25.07.2026 → FOREVER</div><button className="mode-heart" onClick={makeHearts}><Heart size={17} fill="currentColor"/></button></header><section className="mode-hero"><div className="mode-kicker">THE NEXT PAGE IS OURS</div><h1>How do you want to<br/><em>keep us?</em></h1><p>Read the memories we've already kept.<br/>Or sit down and write the next one together.</p></section><section className="mode-choices"><motion.button className="mode-card reader-card romantic-mode-card" whileHover={{ y: -8 }} whileTap={{ scale: .985 }} onClick={() => enterReader(0)}><div className="mode-card-top"><span>01 · RELIVE</span><Eye size={18}/></div><div className="mode-card-illustration"><BookOpen size={68} strokeWidth={1.15}/><span className="card-page-lines"/></div><div className="mode-card-copy"><h2>Our Diary</h2><p>Turn through the pages we've already filled with memories, photos, little details and days worth keeping.</p><strong>READ OUR STORY <ChevronRight size={16}/></strong></div></motion.button><motion.button className="mode-card studio-card romantic-mode-card" whileHover={{ y: -8 }} whileTap={{ scale: .985 }} onClick={() => enterStudio(state.entries.length - 1)}><div className="mode-card-top"><span>02 · CREATE</span><PenLine size={18}/></div><div className="mode-card-illustration"><PenLine size={64} strokeWidth={1.15}/><span className="studio-paper-lines"/></div><div className="mode-card-copy"><h2>Write With Us</h2><p>Write, edit, add photos, attach a song or voice note, and make another page for the story.</p><strong>OPEN WRITING DESK <ChevronRight size={16}/></strong></div></motion.button></section><footer className="mode-home-footer"><span>{state.entries.length} {state.entries.length === 1 ? 'memory' : 'memories'} kept</span><span>latest · {latest?.date}</span><button onClick={() => { setPage(1); setMode('home'); }}>BACK TO FIRST PAGE</button></footer></main>;
   }
 
   function renderEntry(index: number) {
@@ -238,15 +241,15 @@ export default function Page() {
 
   return <main className={`scene desktop-notebook split-mode ${mode}-mode`} aria-label={`Deka ${mode}`} onTouchStart={e => { touchStartX.current = e.changedTouches[0].clientX; }} onTouchEnd={e => { if (touchStartX.current === null) return; const dx = e.changedTouches[0].clientX - touchStartX.current; if (mode === 'reader' && Math.abs(dx) > 60) (dx < 0 ? next : prev)(); touchStartX.current = null; }}>
     <div className="ambient"/><div className="heart-layer" aria-hidden="true">{heartBurst > 0 && Array.from({ length: 14 }, (_, i) => <motion.span key={`${heartBurst}-${i}`} initial={{ x: '50%', y: '58%', scale: 0, opacity: 0 }} animate={{ x: `${12 + (i * 67) % 76}%`, y: `${18 + (i * 31) % 68}%`, scale: [0, 1.1, .8], opacity: [0, 1, 0] }} transition={{ duration: 1.8, delay: (i % 5) * .05 }} className="floating-heart">{i % 3 === 0 ? '❤️' : '♥'}</motion.span>)}</div>
-    <header className="toolbar split-toolbar"><div className="brand"><Heart size={16} fill="currentColor"/> DEKA</div><div className="mode-switch"><button className={mode === 'reader' ? 'active' : ''} onClick={() => { setMode('reader'); setEdit(false); if (page < 3) setPage(3); }}><Eye size={15}/> Our Diary</button><button className={mode === 'studio' ? 'active' : ''} onClick={() => { setMode('studio'); setEdit(true); if (page < 3) setPage(3); }}><PenLine size={15}/> Writing Desk</button></div><div className="toolbar-actions"><button onClick={enterModeHome} title="Choose mode"><LayoutDashboard size={17}/></button><button onClick={makeHearts} title="Send love"><Heart size={17} fill="currentColor"/></button>{mode === 'reader' && <button onClick={() => setShowIndex(v => !v)} title="Open pages"><BookOpen size={17}/></button>}<button onClick={() => setSound(v => !v)} title="Page sound">{sound ? <Volume2 size={18}/> : <VolumeX size={18}/>}</button>{mode === 'studio' && <button className={`save-top ${dirty ? 'needs-save' : ''}`} onClick={saveChanges} disabled={!dirty && !savePulse}><Save size={15}/>{savePulse ? 'Saved' : dirty ? 'Save changes' : 'Saved'}</button>}</div></header>
+    <header className="toolbar split-toolbar"><div className="brand"><Heart size={16} fill="currentColor"/> DEKA</div><div className="mode-switch"><button className={mode === 'reader' ? 'active' : ''} onClick={() => { setMode('reader'); setEdit(false); setDirty(false); if (page < 3) setPage(3); }}><Eye size={15}/> Our Diary</button><button className={mode === 'studio' ? 'active' : ''} onClick={() => { setMode('studio'); setEdit(true); setDirty(false); if (page < 3) setPage(3); }}><PenLine size={15}/> Writing Desk</button></div><div className="toolbar-actions"><button onClick={enterModeHome} title="Choose mode"><LayoutDashboard size={17}/></button><button onClick={makeHearts} title="Send love"><Heart size={17} fill="currentColor"/></button>{mode === 'reader' && <button onClick={() => setShowIndex(v => !v)} title="Open pages"><BookOpen size={17}/></button>}<button onClick={() => setSound(v => !v)} title="Page sound">{sound ? <Volume2 size={18}/> : <VolumeX size={18}/>}</button>{mode === 'studio' && <button className={`save-top ${dirty ? 'needs-save' : 'saved-state'} ${savePulse ? 'save-success' : ''}`} onClick={saveChanges} disabled={!dirty && !savePulse}><Save size={15}/>{savePulse ? 'Saved' : dirty ? 'Save changes' : 'Saved'}</button>}</div></header>
     {mode === 'reader' && <div className="reader-title"><span>{title}</span><small>READ-ONLY MEMORY VIEW</small></div>}
     {mode === 'studio' && <div className="studio-title"><div><span>WRITING DESK</span><small>MAKE THE NEXT PAGE OF US</small></div><button onClick={() => setEdit(v => !v)}>{edit ? 'Editing' : 'View'}</button></div>}
     <AnimatePresence>{showIndex && mode === 'reader' && <motion.aside className="index-panel" initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}><div className="index-head"><span>OUR STORY</span><button onClick={() => setShowIndex(false)}><X size={17}/></button></div>{state.entries.map((e, i) => <div className="index-row" key={e.id}><button className={`index-item ${page === entryPage(i) ? 'active' : ''}`} onClick={() => selectEntry(i, 'reader')}><span>{e.date} <b>{e.mood}</b></span><small>{i === 0 ? 'Where it all began' : 'A page from our life'}</small></button></div>)}</motion.aside>}</AnimatePresence>
-    <section className="desk physical-desk split-desk" aria-label={mode === 'reader' ? 'diary reader' : 'writing desk'}>{mode === 'studio' && <aside className="studio-sidebar"><div className="studio-sidebar-head"><span>YOUR PAGES</span><button onClick={addEntry}><Plus size={16}/></button></div><button className={`studio-page-item opening-page-item ${page === 1 ? 'active' : ''}`} onClick={selectOpeningPage}><span>00</span><div><strong>Opening page</strong><small>Our photo & first words</small></div><b>♡</b></button>{state.entries.map((e, i) => <button key={e.id} className={`studio-page-item ${page === entryPage(i) ? 'active' : ''}`} onClick={() => selectEntry(i, 'studio')}><span>{String(i + 1).padStart(2, '0')}</span><div><strong>{e.date}</strong><small>{e.text?.replace(/\n/g, ' ').slice(0, 38) || 'Untitled memory'}</small></div><b>{e.mood}</b></button>)}<button className="studio-new-page" onClick={addEntry}><Plus size={17}/> Add new page</button></aside>}
+    <section className="desk physical-desk split-desk" aria-label={mode === 'reader' ? 'diary reader' : 'writing desk'}>{mode === 'studio' && <aside className="studio-sidebar"><div className="studio-sidebar-head"><span>YOUR PAGES</span><button onClick={addEntry}><Plus size={16}/></button></div><button className={`studio-page-item opening-page-item ${page === 1 ? 'active' : ''}`} onClick={selectOpeningPage}><span>00</span><div><strong>First page</strong><small>25.07.2026 · where it began</small></div><b>♡</b></button>{state.entries.map((e, i) => <button key={e.id} className={`studio-page-item ${page === entryPage(i) ? 'active' : ''}`} onClick={() => selectEntry(i, 'studio')}><span>{String(i + 1).padStart(2, '0')}</span><div><strong>{e.date}</strong><small>{e.text?.replace(/\n/g, ' ').slice(0, 38) || 'Untitled memory'}</small></div><b>{e.mood}</b></button>)}<button className="studio-new-page" onClick={addEntry}><Plus size={17}/> Add new page</button></aside>}
       <div className="book-stage" aria-live="polite"><article className={`paper paper-base ${shownBirthday ? 'birthday-paper' : ''}`}>{renderEntry(baseIndex)}</article>{turn && mode === 'reader' && <div className={`turn-sheet ${turn.direction > 0 ? 'turn-forward' : 'turn-backward'}`}><article className="paper turn-front">{renderEntry(frontIndex)}</article><article className="paper turn-back">{renderEntry(baseIndex)}</article><span className="turn-shadow"/><span className="turn-highlight"/></div>}</div>
       {mode === 'reader' && <><button className="nav prev" onClick={prev} disabled={page <= 3 || !!turn}><ChevronLeft size={25}/></button><button className="nav next" onClick={next} disabled={page >= pageCount - 1 || !!turn}><ChevronRight size={25}/></button></>}
     </section>
-    <footer className="bottom-bar split-bottom"><div className="progress"><span>{Math.max(1, page - 2)}</span><i/><span>{state.entries.length}</span></div>{mode === 'studio' ? <><button className={`new-entry ${dirty ? 'save-bottom-active' : ''}`} onClick={dirty ? saveChanges : addEntry}>{dirty ? <><Save size={17}/> Save changes</> : <><Plus size={18}/> New page</>}</button><div className="hint">{dirty ? 'UNSAVED CHANGES · CTRL + S TO SAVE' : 'WRITE · EDIT · ADD · KEEP'}</div></> : <><button className="love-button" onClick={() => enterStudio(shownEntryIndex >= 0 ? shownEntryIndex : 0)}><PenLine size={15}/> Edit this memory</button><div className="hint"><CalendarDays size={15}/> 25.07.2026 → forever</div></>}</footer>
+    <footer className="bottom-bar split-bottom"><div className="progress"><span>{Math.max(1, page - 2)}</span><i/><span>{state.entries.length}</span></div>{mode === 'studio' ? <><button className={`new-entry ${dirty ? 'save-bottom-active' : ''}`} onClick={dirty ? saveChanges : addEntry}>{dirty ? <><Save size={17}/> Save changes</> : <><Plus size={18}/> New page</>}</button><div className="hint">{dirty ? 'UNSAVED CHANGES · CTRL + S TO SAVE' : savePulse ? 'ALL CHANGES SAVED' : 'WRITE · EDIT · ADD · KEEP'}</div></> : <><button className="love-button" onClick={() => enterStudio(shownEntryIndex >= 0 ? shownEntryIndex : 0)}><PenLine size={15}/> Edit this memory</button><div className="hint"><CalendarDays size={15}/> 25.07.2026 → forever</div></>}</footer>
     <AnimatePresence>{deleteTarget && <motion.div className="notebook-confirm-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={e => { if (e.currentTarget === e.target) setDeleteTarget(null); }}><motion.div className="notebook-confirm" initial={{ y: 18, scale: .97 }} animate={{ y: 0, scale: 1 }} exit={{ y: 10, scale: .98 }}><div className="notebook-confirm-icon">♢</div><div className="notebook-confirm-kicker">REMOVE MEMORY</div><h2>Let this page go?</h2><p>The memory dated <strong>{state.entries.find(e => e.id === deleteTarget)?.date}</strong> will be removed from this notebook.</p><div className="notebook-confirm-actions"><button type="button" onClick={() => setDeleteTarget(null)}>Keep page</button><button type="button" onClick={confirmDelete}>Remove page</button></div></motion.div></motion.div>}</AnimatePresence>
   </main>;
 }
