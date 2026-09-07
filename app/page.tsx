@@ -98,8 +98,8 @@ export default function Page() {
   function openCover() { if (openingCover || page !== 0) return; setOpeningCover(true); setTimeout(() => { setPage(2); setOpeningCover(false); }, 650); }
   function closeToCover() { if (openingCover || turn) return; setOpeningCover(true); setMode('home'); setEdit(false); setDirty(false); setTimeout(() => { setPage(0); setOpeningCover(false); }, 560); }
   function enterModeHome() { setPage(2); setMode('home'); setEdit(false); setShowIndex(false); }
-  function enterReader(entryIndex = 0) { setPage(1); setMode('reader'); setEdit(false); setDirty(false); setShowIndex(false); }
-  function enterStudio(entryIndex = 0) { setPage(1); setMode('studio'); setEdit(true); setDirty(false); setShowIndex(false); }
+  function enterReader(entryIndex = 0) { setPage(entryIndex <= -1 ? 1 : entryPage(entryIndex)); setMode('reader'); setEdit(false); setDirty(false); setShowIndex(false); }
+  function enterStudio(entryIndex = 0) { setPage(entryIndex <= -1 ? 1 : entryPage(entryIndex)); setMode('studio'); setEdit(true); setDirty(false); setShowIndex(false); }
   function selectEntry(i: number, targetMode: Mode = mode) { setPage(entryPage(i)); setMode(targetMode); setEdit(targetMode === 'studio'); setShowIndex(false); }
   function selectDedication(targetMode: Mode) { setPage(1); setMode(targetMode); setEdit(targetMode === 'studio'); setShowIndex(false); }
 
@@ -153,11 +153,34 @@ export default function Page() {
     const latest = state.entries[state.entries.length - 1];
     return <main className="mode-home romantic-mode-home preview-mode-home" aria-label="Choose notebook mode">
       <div className="mode-home-glow"/>
-      <header className="mode-home-head"><div className="mode-brand"><Heart size={17} fill="currentColor"/> DEKA</div><div className="mode-meta">OUR PRIVATE NOTEBOOK · 25.07.2026 → FOREVER</div><button className="mode-heart" onClick={makeHearts}><Heart size={17} fill="currentColor"/></button></header>
+      <header className="mode-home-head"><div className="mode-brand"><Heart size={17} fill="currentColor"/> DEKA</div><div className="mode-meta">OUR PRIVATE NOTEBOOK · 25.07.2026 → FOREVER</div><button className="mode-heart" onClick={makeHearts} title="Send some love"><Heart size={17} fill="currentColor"/></button></header>
       <section className="preview-layout preview-no-page">
-        <div className="preview-copy"><div className="mode-kicker">OUR NOTEBOOK · TWO WAYS IN</div><h1>Our story,<br/><em>continues here.</em></h1><p>Relive the memories we have kept,<br/>or open the desk and write the next one.</p><div className="preview-rule"><span>♡</span></div><div className="preview-meta">{state.entries.length} {state.entries.length === 1 ? 'memory' : 'memories'} · latest {latest?.date}</div></div>
-        <div className="preview-quiet-space" aria-hidden="true"><span>♡</span><small>OUR DAYS · OUR WORDS · OUR MEMORIES</small></div>
-        <div className="preview-actions"><div className="preview-actions-kicker">WHAT DO YOU WANT TO DO?</div><motion.button className="preview-choice reader-choice" whileHover={{ y: -5 }} whileTap={{ scale: .985 }} onClick={() => enterReader()}><span className="choice-number">01</span><div><h2>Our Diary</h2><p>Open the real diary, starting with our keepsake first page.</p><strong><Eye size={15}/> READ OUR STORY <ChevronRight size={15}/></strong></div></motion.button><motion.button className="preview-choice studio-choice" whileHover={{ y: -5 }} whileTap={{ scale: .985 }} onClick={() => enterStudio()}><span className="choice-number">02</span><div><h2>Write With Us</h2><p>Edit the first page, add your photo and lines, or create new memories.</p><strong><PenLine size={15}/> OPEN WRITING DESK <ChevronRight size={15}/></strong></div></motion.button></div>
+        <div className="preview-copy">
+          <div className="mode-kicker">OUR NOTEBOOK · TWO WAYS IN</div>
+          <h1>Our story,<br/><em>continues here.</em></h1>
+          <p>Relive the memories we have kept,<br/>or open the desk and write the next one.</p>
+          <div className="preview-rule"><span>♡</span></div>
+          <div className="preview-meta">{state.entries.length} {state.entries.length === 1 ? 'memory' : 'memories'} · latest {latest?.date}</div>
+          <div className="love-promise"><span>♡</span><div><strong>made for the two of us</strong><small>Every page is a little piece of our story.</small></div></div>
+        </div>
+        <div className="preview-love-orbit">
+          <motion.button className="love-orbit-heart" onClick={makeHearts} whileHover={{ scale: 1.08 }} whileTap={{ scale: .92 }} aria-label="Send love">
+            <span>♥</span>
+          </motion.button>
+          <span className="orbit-ring orbit-ring-one"/><span className="orbit-ring orbit-ring-two"/>
+          <span className="orbit-dot orbit-dot-one">♡</span><span className="orbit-dot orbit-dot-two">♥</span>
+          <div className="orbit-caption"><span>OUR DAYS · OUR WORDS · OUR MEMORIES</span><small>tap the heart · make some love</small></div>
+        </div>
+        <div className="preview-actions">
+          <div className="preview-actions-kicker">CHOOSE OUR NEXT MOMENT</div>
+          <motion.button className="preview-choice reader-choice" whileHover={{ y: -6, scale: 1.012 }} whileTap={{ scale: .985 }} onClick={() => enterReader()}>
+            <span className="choice-number">01</span><div><h2>Our Diary</h2><p>Turn the pages and relive everything we have written together.</p><strong><Eye size={15}/> READ OUR STORY <ChevronRight size={15}/></strong></div><span className="choice-heart">♡</span>
+          </motion.button>
+          <motion.button className="preview-choice studio-choice" whileHover={{ y: -6, scale: 1.012 }} whileTap={{ scale: .985 }} onClick={() => enterStudio()}>
+            <span className="choice-number">02</span><div><h2>Write With Us</h2><p>Add a memory, edit a page, keep a photo, or leave a little love note.</p><strong><PenLine size={15}/> OPEN WRITING DESK <ChevronRight size={15}/></strong></div><span className="choice-heart">♡</span>
+          </motion.button>
+          <div className="choice-footer"><span>25.07.2026</span><i/> <span>∞</span> <i/> <span>FOREVER</span></div>
+        </div>
       </section>
     </main>;
   }
@@ -190,7 +213,7 @@ export default function Page() {
       <div className="book-stage" aria-live="polite"><article className={`paper paper-base ${shownBirthday ? 'birthday-paper' : ''}`}>{renderEntry(baseIndex)}</article>{turn && mode === 'reader' && <div className={`turn-sheet ${turn.direction > 0 ? 'turn-forward' : 'turn-backward'}`}><article className="paper turn-front">{renderEntry(frontIndex)}</article><article className="paper turn-back">{renderEntry(baseIndex)}</article><span className="turn-shadow"/><span className="turn-highlight"/></div>}</div>
       {mode === 'reader' && <><button className="nav prev" onClick={prev} disabled={page <= 1 || !!turn}><ChevronLeft size={25}/></button><button className="nav next" onClick={next} disabled={page >= pageCount - 1 || !!turn}><ChevronRight size={25}/></button></>}
     </section>
-    <footer className="bottom-bar split-bottom"><div className="progress"><span>{page === 1 ? '♡' : Math.max(1, page - 1)}</span><i/><span>{state.entries.length + 1}</span></div>{mode === 'studio' ? <><button className={`new-entry ${dirty ? 'save-bottom-active' : ''}`} onClick={dirty ? saveChanges : addEntry}>{dirty ? <><Save size={17}/> Save changes</> : <><Plus size={18}/> New page</>}</button><div className="hint">{dirty ? 'UNSAVED CHANGES · CTRL + S TO SAVE' : savePulse ? 'ALL CHANGES SAVED' : 'WRITE · EDIT · ADD · KEEP'}</div></> : <><button className="love-button" onClick={() => page === 1 ? enterStudio() : enterStudio(shownEntryIndex)}><PenLine size={15}/> Edit this memory</button><div className="hint"><CalendarDays size={15}/> 25.07.2026 → forever</div></>}</footer>
+    <footer className="bottom-bar split-bottom"><div className="progress"><span>{page === 1 ? '♡' : Math.max(1, page - 1)}</span><i/><span>{state.entries.length + 1}</span></div>{mode === 'studio' ? <><button className={`new-entry ${dirty ? 'save-bottom-active' : ''}`} onClick={dirty ? saveChanges : addEntry}>{dirty ? <><Save size={17}/> Save changes</> : <><Plus size={18}/> New page</>}</button><div className="hint">{dirty ? 'UNSAVED CHANGES · CTRL + S TO SAVE' : savePulse ? 'ALL CHANGES SAVED' : 'WRITE · EDIT · ADD · KEEP'}</div></> : <><button className="love-button" onClick={() => page === 1 ? enterStudio(-1) : enterStudio(shownEntryIndex)}><PenLine size={15}/> Edit this memory</button><div className="hint"><CalendarDays size={15}/> 25.07.2026 → forever</div></>}</footer>
     <AnimatePresence>{deleteTarget && <motion.div className="notebook-confirm-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={e => { if (e.currentTarget === e.target) setDeleteTarget(null); }}><motion.div className="notebook-confirm" initial={{ y: 18, scale: .97 }} animate={{ y: 0, scale: 1 }} exit={{ y: 10, scale: .98 }}><div className="notebook-confirm-icon">♢</div><div className="notebook-confirm-kicker">REMOVE MEMORY</div><h2>Let this page go?</h2><p>The memory dated <strong>{state.entries.find(e => e.id === deleteTarget)?.date}</strong> will be removed from this notebook.</p><div className="notebook-confirm-actions"><button type="button" onClick={() => setDeleteTarget(null)}>Keep page</button><button type="button" onClick={confirmDelete}>Remove page</button></div></motion.div></motion.div>}</AnimatePresence>
   </main>;
 }
