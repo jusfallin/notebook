@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookOpen, ChevronLeft, ChevronRight, ImagePlus, Music2, Volume2, VolumeX, Heart, Sparkles, CalendarDays, Wand2, Trash2, Camera, RotateCcw } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, ImagePlus, Music2, Volume2, VolumeX, Heart, Sparkles, CalendarDays, Wand2, Trash2, Camera, Plus } from 'lucide-react';
 
 type Entry = { id: string; date: string; mood: string; weather: string; text: string; image: string; audio: string; };
 type NotebookState = { entries: Entry[]; dedication: string; dedicationPhoto?: string; coverOpened: boolean; };
