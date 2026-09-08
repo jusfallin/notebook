@@ -1,0 +1,69 @@
+/* DEKA mode home — fuller composition and much larger choices on touch screens */
+@media (max-width: 1050px){
+  .preview-mode-home .preview-layout{
+    width:min(940px,calc(100% - 40px))!important;
+    grid-template-columns:1fr!important;
+    gap:26px!important;
+    padding:22px 0 42px!important;
+    align-content:start!important;
+  }
+  .preview-mode-home .preview-copy{
+    width:100%!important;
+    max-width:none!important;
+    box-sizing:border-box!important;
+    text-align:center!important;
+    padding:30px!important;
+  }
+  .preview-mode-home .preview-copy p{margin-left:auto!important;margin-right:auto!important}
+  .preview-mode-home .preview-rule{margin-left:auto!important;margin-right:auto!important}
+  .preview-mode-home .preview-love-orbit{
+    width:min(430px,72vw)!important;
+    height:min(360px,52vw)!important;
+    margin:0 auto!important;
+  }
+  .preview-mode-home .love-orbit-heart{width:132px!important;height:132px!important}
+  .preview-mode-home .love-orbit-heart span{font-size:56px!important}
+  .preview-mode-home .orbit-ring-one{width:235px!important;height:235px!important}
+  .preview-mode-home .orbit-ring-two{width:350px!important;height:350px!important}
+  .preview-mode-home .preview-actions{
+    width:100%!important;
+    max-width:none!important;
+    box-sizing:border-box!important;
+    padding:28px!important;
+    border-radius:16px!important;
+    margin:0 auto!important;
+    box-shadow:0 28px 70px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.05)!important;
+  }
+  .preview-mode-home .preview-actions-kicker{font-size:10px!important;margin-bottom:18px!important}
+  .preview-mode-home .preview-choice{
+    min-height:190px!important;
+    margin-bottom:18px!important;
+    padding:30px 28px!important;
+    grid-template-columns:54px 1fr!important;
+    border-radius:14px!important;
+    box-shadow:0 18px 38px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.28)!important;
+    touch-action:manipulation!important;
+  }
+  .preview-mode-home .preview-choice h2{font-size:38px!important;margin-bottom:11px!important}
+  .preview-mode-home .preview-choice p{font-size:14px!important;line-height:1.7!important;margin-bottom:20px!important}
+  .preview-mode-home .preview-choice strong{font-size:10px!important;letter-spacing:.2em!important}
+  .preview-mode-home .choice-number{font-size:11px!important}
+}
+
+@media (max-width:700px){
+  .preview-mode-home{overflow:auto!important;height:auto!important;min-height:100svh!important}
+  .preview-mode-home .mode-home-head{width:calc(100% - 28px)!important;padding:18px 0 6px!important}
+  .preview-mode-home .preview-layout{width:calc(100% - 24px)!important;gap:24px!important;padding:16px 0 36px!important}
+  .preview-mode-home .preview-copy{padding:24px 20px!important;border-radius:15px!important}
+  .preview-mode-home .preview-copy h1{font-size:43px!important}
+  .preview-mode-home .preview-love-orbit{width:310px!important;height:280px!important}
+  .preview-mode-home .love-orbit-heart{width:110px!important;height:110px!important}
+  .preview-mode-home .love-orbit-heart span{font-size:46px!important}
+  .preview-mode-home .orbit-ring-one{width:190px!important;height:190px!important}
+  .preview-mode-home .orbit-ring-two{width:270px!important;height:270px!important}
+  .preview-mode-home .preview-actions{padding:18px!important;border-radius:15px!important}
+  .preview-mode-home .preview-choice{min-height:175px!important;padding:26px 22px!important;grid-template-columns:44px 1fr!important;border-radius:13px!important}
+  .preview-mode-home .preview-choice h2{font-size:31px!important}
+  .preview-mode-home .preview-choice p{font-size:12px!important}
+  .preview-mode-home .preview-choice strong{font-size:9px!important}
+}
