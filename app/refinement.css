@@ -1,0 +1,187 @@
+/* DEKA NOTEBOOK — experience refinement
+   Shared visual system + responsive/mobile/accessibility polish.
+   Intentionally additive so the existing notebook features stay intact.
+*/
+
+:root{
+  --deka-ink:#3a2e29;
+  --deka-muted:#88756a;
+  --deka-rose:#b87982;
+  --deka-rose-deep:#70444c;
+  --deka-gold:#b89a69;
+  --deka-paper:#fbf7ee;
+  --deka-night:#171311;
+  --deka-night-2:#29201d;
+  --deka-line:rgba(232,207,191,.15);
+  --deka-shadow:0 24px 70px rgba(29,18,14,.28);
+}
+
+html{scroll-behavior:smooth}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,input,textarea{font:inherit}
+button{-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid rgba(213,160,151,.9);outline-offset:4px}
+::selection{background:rgba(184,121,130,.24);color:inherit}
+
+/* ---------------- Cover ---------------- */
+.cover-scene .ambient{background:
+  radial-gradient(circle at 18% 18%,rgba(236,183,171,.12),transparent 25%),
+  radial-gradient(circle at 82% 78%,rgba(184,154,105,.09),transparent 25%),
+  repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 5px),
+  linear-gradient(135deg,#151210,#241a18 52%,#100e0d);
+}
+.cover-scene .physical-desk{position:relative}
+.cover-scene .cover{transition:transform .55s cubic-bezier(.2,.8,.2,1),box-shadow .55s ease,filter .55s ease}
+.cover-scene .cover:hover{filter:brightness(1.045)}
+.cover-scene .cover-open-hint{animation:dekaHint 2.8s ease-in-out infinite}
+.cover-scene .cover:after{box-shadow:inset 0 0 45px rgba(255,224,207,.035)}
+@keyframes dekaHint{0%,100%{opacity:.5;transform:translateY(0)}50%{opacity:.9;transform:translateY(-3px)}}
+
+/* ---------------- Mode selection ---------------- */
+.preview-mode-home{color:#f7eee8!important}
+.preview-mode-home .preview-layout{isolation:isolate}
+.preview-mode-home .preview-layout:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;background:
+  radial-gradient(circle at 50% 50%,rgba(231,183,171,.055),transparent 31%),
+  radial-gradient(circle at 92% 12%,rgba(190,154,106,.055),transparent 24%);
+}
+.preview-mode-home .preview-copy,.preview-mode-home .preview-actions{
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+.preview-mode-home .preview-copy{position:relative;overflow:hidden}
+.preview-mode-home .preview-copy:before,.preview-mode-home .preview-actions:before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(120deg,rgba(255,255,255,.055),transparent 30%,transparent 68%,rgba(220,172,154,.035));
+}
+.preview-mode-home .preview-copy h1{font-weight:500;text-wrap:balance}
+.preview-mode-home .preview-choice{position:relative;overflow:hidden;isolation:isolate;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s ease,border-color .35s ease}
+.preview-mode-home .preview-choice:before{content:"";position:absolute;inset:-30% -20%;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.13) 48%,transparent 60%);transform:translateX(-70%) rotate(3deg);transition:transform .75s ease;pointer-events:none;z-index:-1}
+.preview-mode-home .preview-choice:hover:before{transform:translateX(70%) rotate(3deg)}
+.preview-mode-home .preview-choice:focus-visible{border-color:rgba(235,199,186,.55)!important;box-shadow:0 20px 45px rgba(0,0,0,.3),0 0 0 3px rgba(205,147,135,.12)!important}
+.preview-mode-home .choice-heart{transition:transform .35s ease,opacity .35s ease}
+.preview-mode-home .preview-choice:hover .choice-heart{transform:rotate(-12deg) scale(1.2);opacity:1}
+.preview-mode-home .love-orbit-heart{transition:box-shadow .4s ease,transform .4s cubic-bezier(.2,.8,.2,1)}
+.preview-mode-home .love-orbit-heart:hover{box-shadow:0 0 0 18px rgba(231,171,160,.045),0 0 95px rgba(231,171,160,.28),inset 0 1px rgba(255,255,255,.18)!important}
+
+/* ---------------- Reader / Writing Desk desktop ---------------- */
+.split-mode{background:
+  radial-gradient(circle at 50% 32%,rgba(186,131,111,.11),transparent 34%),
+  radial-gradient(circle at 12% 78%,rgba(110,83,67,.12),transparent 28%),
+  linear-gradient(135deg,#171311 0%,#2a201d 52%,#151210 100%)!important;
+}
+.split-mode .toolbar{border-bottom:1px solid rgba(255,255,255,.07);background:rgba(20,16,14,.46);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.split-mode .toolbar-actions button{min-height:38px;gap:7px}
+.split-mode .mode-switch button{min-height:38px}
+.split-mode .book-stage{transition:filter .45s ease,transform .45s ease}
+.split-mode .book-stage:hover{filter:drop-shadow(0 28px 42px rgba(0,0,0,.34))}
+.reader-mode .reader-title span,.studio-mode .studio-title span{letter-spacing:.01em}
+.reader-mode .reader-title small,.studio-mode .studio-title small{opacity:.55}
+.split-mode .nav{width:52px;height:52px;z-index:25;background:rgba(245,235,224,.92);box-shadow:0 12px 28px rgba(0,0,0,.26);transition:transform .25s ease,background .25s ease,opacity .25s ease}
+.split-mode .nav:hover:not(:disabled){background:#fff8ef}
+.split-mode .bottom-bar{background:rgba(16,13,12,.74);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.06)}
+.split-mode .love-button,.split-mode .new-entry{min-height:38px}
+.split-mode .page-footer button{transition:transform .2s ease,background .2s ease}
+.split-mode .page-footer button:hover{transform:translateY(-1px)}
+
+/* Make paper content feel layered instead of flat. */
+.split-mode .paper-base,.split-mode .turn-sheet .paper{overflow:hidden}
+.split-mode .paper-base:after{background:
+  linear-gradient(90deg,rgba(255,255,255,.28),transparent 8%,transparent 90%,rgba(66,45,32,.08)),
+  radial-gradient(circle at 50% 25%,rgba(255,255,255,.18),transparent 42%)}
+.split-mode .entry-text,.split-mode .entry-editor{letter-spacing:.005em}
+.split-mode .media-card{box-shadow:0 8px 18px rgba(76,54,39,.06),inset 0 1px rgba(255,255,255,.75)}
+
+/* ---------------- Tablet ---------------- */
+@media (max-width:1100px){
+  .preview-mode-home .preview-layout{gap:32px!important}
+  .split-mode .toolbar{padding:8px 16px;height:auto;min-height:58px;gap:10px}
+  .split-mode .toolbar-actions{gap:6px}
+  .split-mode .toolbar-actions button{min-width:40px;padding:9px}
+  .split-mode .mode-switch button{padding:9px 13px}
+  .split-mode .book-stage{width:min(680px,calc(100vw - 120px))!important;height:auto!important;aspect-ratio:680/724}
+  .split-mode .split-desk{width:100%!important}
+}
+
+/* ---------------- Phone: the reader becomes a real mobile notebook ---------------- */
+@media (max-width:760px){
+  .split-mode{min-height:100svh!important;height:auto!important;overflow-x:hidden!important;overflow-y:auto!important;padding-bottom:env(safe-area-inset-bottom)}
+  .split-mode .toolbar{position:sticky;top:0;min-height:58px;height:auto;padding:8px 10px;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;z-index:100}
+  .split-mode .brand{font-size:9px;letter-spacing:.14em;white-space:nowrap}
+  .split-mode .mode-switch{justify-self:center;min-width:0;overflow:auto;max-width:100%;scrollbar-width:none}
+  .split-mode .mode-switch::-webkit-scrollbar{display:none}
+  .split-mode .mode-switch button{padding:9px 11px;font-size:8px;letter-spacing:.04em;white-space:nowrap}
+  .split-mode .toolbar-actions{gap:5px;justify-self:end}
+  .split-mode .toolbar-actions button{width:40px;min-width:40px;height:40px;padding:8px;border-radius:12px}
+  .split-mode .toolbar-actions button:not(.save-top){font-size:0}
+  .split-mode .toolbar-actions button svg{width:17px;height:17px}
+  .split-mode .toolbar-actions .save-top{font-size:8px;padding:0 10px;width:auto;min-width:74px}
+
+  .reader-mode .reader-title{position:relative;top:auto;left:auto;right:auto;margin:14px 16px 2px;padding:0;text-align:center;z-index:20}
+  .reader-mode .reader-title span{font-size:20px}
+  .reader-mode .reader-title small{font-size:7px;margin-top:5px}
+  .studio-mode .studio-title{position:relative;left:auto;top:auto;margin:14px 16px 2px;justify-content:space-between;gap:10px}
+  .studio-mode .studio-title span{font-size:19px}
+  .studio-mode .studio-title button{padding:8px 12px}
+
+  .split-mode .split-desk{position:relative!important;top:auto!important;left:auto!important;height:auto!important;min-height:0!important;width:100%!important;margin:0!important;padding:14px 12px 86px!important;display:block!important}
+  .split-mode .book-stage{display:block!important;width:min(680px,calc(100vw - 28px))!important;height:auto!important;aspect-ratio:680/724!important;margin:0 auto!important;transform:none!important}
+  .split-mode .book-stage:hover{filter:drop-shadow(0 20px 28px rgba(0,0,0,.25))}
+  .split-mode .paper-base,.split-mode .turn-sheet .paper{width:100%!important;height:100%!important}
+  .split-mode .nav{position:fixed!important;top:auto!important;bottom:22px!important;transform:none!important;width:50px!important;height:50px!important;border-radius:16px!important;z-index:120!important}
+  .split-mode .nav.prev{left:16px!important}.split-mode .nav.next{right:16px!important}
+  .split-mode .nav:hover:not(:disabled){transform:translateY(-2px)!important}
+  .split-mode .bottom-bar{position:fixed;left:0;right:0;bottom:0;height:68px;padding:7px 78px;z-index:110;justify-content:center;gap:8px}
+  .split-mode .bottom-bar .hint{display:none}
+  .split-mode .bottom-bar .progress{font-size:7px}
+  .split-mode .bottom-bar .progress i{width:36px}
+  .split-mode .love-button,.split-mode .new-entry{padding:8px 11px;font-size:8px}
+
+  .split-mode .index-panel{position:fixed;right:10px;top:68px;width:min(360px,calc(100vw - 20px));max-height:70svh;z-index:150}
+  .studio-mode .studio-sidebar{position:fixed;left:10px;right:10px;bottom:76px;top:auto;width:auto;height:auto;max-height:170px;overflow:auto;padding:10px;z-index:130;border:1px solid rgba(255,255,255,.09);border-radius:16px;background:rgba(25,21,18,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+  .studio-mode .studio-sidebar-head{position:sticky;top:0;background:rgba(25,21,18,.92);z-index:2}
+  .studio-mode .studio-page-item{min-height:48px}
+
+  .split-mode .entry{padding:4% 5%}
+  .split-mode .entry-topline{gap:10px}
+  .split-mode .date-display,.split-mode .date-input{font-size:25px}
+  .split-mode .entry-label{font-size:7px;letter-spacing:.14em}
+  .split-mode .stamp{width:36px;height:36px;font-size:17px}
+  .split-mode .entry-text,.split-mode .entry-editor{font-size:17px;line-height:1.55;min-height:250px}
+  .split-mode .media-grid{grid-template-columns:1fr;gap:9px}
+  .split-mode .media-card{min-height:78px;height:auto}
+  .split-mode .page-footer{gap:7px;flex-wrap:wrap;font-size:7px}
+  .split-mode .birthday-banner{font-size:7px;line-height:1.4;text-align:center}
+  .split-mode .birthday-line{font-size:20px}
+
+  .split-mode .opening-page{padding:8% 7%!important}
+  .split-mode .dedication-heading{font-size:18px!important}
+  .split-mode .dedication-photo-frame{width:min(230px,78vw)!important}
+  .split-mode .dedication-lines{font-size:14px!important;line-height:1.6!important}
+  .split-mode .dedication-sign{font-size:12px!important}
+}
+
+/* Narrow phones: remove competing controls and make the book the hero. */
+@media (max-width:430px){
+  .split-mode .toolbar{grid-template-columns:auto 1fr auto}
+  .split-mode .brand{font-size:8px}
+  .split-mode .mode-switch button{padding:8px 9px}
+  .split-mode .toolbar-actions button{width:36px;min-width:36px;height:36px}
+  .split-mode .toolbar-actions button:first-child{display:none}
+  .split-mode .book-stage{width:calc(100vw - 20px)!important}
+  .split-mode .split-desk{padding-left:10px!important;padding-right:10px!important}
+  .split-mode .nav{bottom:18px!important;width:46px!important;height:46px!important}
+  .split-mode .nav.prev{left:10px!important}.split-mode .nav.next{right:10px!important}
+  .split-mode .bottom-bar{padding-left:62px;padding-right:62px;height:62px}
+}
+
+/* ---------------- Motion safety ---------------- */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* Avoid hover-only affordances on touch devices. */
+@media (hover:none){
+  .preview-mode-home .preview-choice:hover{transform:none!important}
+  .split-mode .media-card:hover{background:rgba(255,255,255,.34)}
+}
