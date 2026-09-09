@@ -1,0 +1,27 @@
+/* DEKA interactive editor + preview layer */
+:root{--deka-rose:#a96f76;--deka-deep:#74464d;--deka-gold:#b99a68;--deka-paper:#fbf7ee;--deka-ink:#3d332c;--deka-muted:#87766a}
+.editor-interactive{position:relative;overflow:hidden}
+.editor-interactive::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 90% 0%,rgba(185,154,104,.13),transparent 34%),linear-gradient(120deg,transparent,rgba(169,111,118,.05),transparent);pointer-events:none}
+.live-feedback{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(169,111,118,.18);background:rgba(255,255,255,.5);border-radius:999px;padding:6px 10px;color:var(--deka-muted);font:600 10px/1 "DM Mono",monospace;letter-spacing:.08em;text-transform:uppercase;transition:.2s ease}
+.live-feedback.is-dirty{color:var(--deka-deep);border-color:rgba(169,111,118,.35);box-shadow:0 5px 18px rgba(116,70,77,.1)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 4px rgba(169,111,118,.1);animation:dekaPulse 1.8s ease-in-out infinite}
+@keyframes dekaPulse{50%{transform:scale(.7);opacity:.55}}
+.date-picker-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.date-picker-wrap .date-input{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.date-picker-wrap .date-input:focus{transform:translateY(-1px);box-shadow:0 8px 22px rgba(116,70,77,.12)}
+.interactive-drop{position:relative;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease,background .22s ease}
+.interactive-drop.drag-over{transform:translateY(-3px) scale(1.01);border-color:var(--deka-rose)!important;background:rgba(169,111,118,.1)!important;box-shadow:0 16px 34px rgba(116,70,77,.16)}
+.interactive-drop.drag-over::after{content:"DROP IT HERE ♡";position:absolute;inset:10px;display:grid;place-items:center;border:1px dashed rgba(169,111,118,.55);border-radius:12px;background:rgba(251,247,238,.82);color:var(--deka-deep);font:700 11px/1 "DM Mono",monospace;letter-spacing:.12em;pointer-events:none}
+.preview-choice,.studio-page-item,.nav,.love-button,.new-entry,.save-top,.duplicate,.delete-page{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease,background .22s ease,opacity .22s ease}
+.preview-choice:focus-visible,.studio-page-item:focus-visible,.date-input:focus-visible,.entry-editor:focus-visible,.dedication-editor:focus-visible,.media-upload:focus-visible,.love-button:focus-visible,.new-entry:focus-visible,.save-top:focus-visible,.duplicate:focus-visible,.delete-page:focus-visible{outline:3px solid rgba(169,111,118,.28);outline-offset:3px}
+.studio-title .studio-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.preview-toggle{border:1px solid rgba(169,111,118,.22);background:rgba(255,255,255,.54);color:var(--deka-deep);border-radius:999px;padding:8px 12px;font:700 10px/1 "DM Mono",monospace;letter-spacing:.08em;cursor:pointer}
+.preview-toggle:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(116,70,77,.12)}
+.preview-toggle.active{background:var(--deka-deep);color:#fff}
+.studio-live-preview{position:absolute;right:16px;top:72px;z-index:5;max-width:240px;padding:10px 12px;border-radius:14px;background:rgba(251,247,238,.94);border:1px solid rgba(169,111,118,.18);box-shadow:0 16px 36px rgba(49,37,31,.12);backdrop-filter:blur(12px);font:500 12px/1.45 "Cormorant Garamond",serif;color:var(--deka-ink);animation:previewIn .25s ease}
+.studio-live-preview strong{display:block;font:700 9px/1 "DM Mono",monospace;letter-spacing:.1em;color:var(--deka-deep);margin-bottom:5px;text-transform:uppercase}
+@keyframes previewIn{from{opacity:0;transform:translateY(-5px) scale(.98)}to{opacity:1;transform:none}}
+.delete-page:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(116,70,77,.12)}
+.delete-page:disabled{opacity:.45;cursor:not-allowed}
+@media (max-width:760px){.studio-live-preview{position:fixed;top:auto;right:12px;bottom:76px;left:12px;max-width:none}.studio-title .studio-tools{justify-content:flex-start}.live-feedback{font-size:9px}.date-picker-wrap{align-items:flex-start}}
+@media (prefers-reduced-motion:reduce){.live-dot{animation:none}.interactive-drop,.preview-choice,.studio-page-item,.nav,.love-button,.new-entry,.save-top,.duplicate,.delete-page{transition:none}}
