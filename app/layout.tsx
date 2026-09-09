@@ -13,8 +13,8 @@ import './love-atmosphere.css';
 import './toolbar-guide.css';
 import './mode-home-redesign.css';
 import './mode-home-mobile.css';
+import './refinement.css';
 import './touch-transition.css';
-import './reader-mobile.css';
 import ConfirmProvider from './confirm-provider';
 
 export const metadata: Metadata = {
