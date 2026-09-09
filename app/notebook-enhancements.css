@@ -1,0 +1,63 @@
+/* DEKA interactive refinement layer — additive, intentionally scoped to existing notebook markup. */
+:root{
+  --deka-blush:#c9878f;--deka-rose:#9d5c67;--deka-ink:#463a34;--deka-paper:#fffaf1;
+  --deka-gold:#b99a68;--deka-shadow:rgba(67,48,39,.18)
+}
+/* Preview: make the choice cards feel tactile rather than static. */
+.preview-mode-home{background:radial-gradient(circle at 50% 18%,rgba(255,250,243,.98),rgba(236,221,210,.94) 48%,rgba(207,190,181,.98));}
+.preview-mode-home:before{content:'';position:absolute;inset:7%;border:1px solid rgba(169,111,118,.13);border-radius:28px;pointer-events:none;box-shadow:inset 0 0 80px rgba(255,255,255,.28)}
+.preview-choice{position:relative;isolation:isolate;overflow:hidden;backdrop-filter:blur(10px);transition:box-shadow .35s ease,border-color .35s ease,background .35s ease;will-change:transform}
+.preview-choice:before{content:'';position:absolute;inset:-40% -20%;background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.55) 49%,transparent 60%);transform:translateX(-65%);transition:transform .8s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+.preview-choice:hover:before,.preview-choice:focus-visible:before{transform:translateX(65%)}
+.preview-choice:hover{box-shadow:0 22px 45px rgba(91,61,62,.18),inset 0 1px rgba(255,255,255,.72);border-color:rgba(157,92,103,.3)}
+.preview-choice:active{box-shadow:0 10px 24px rgba(91,61,62,.16);}
+.preview-choice .choice-heart{transition:transform .35s ease,opacity .35s ease}
+.preview-choice:hover .choice-heart{transform:scale(1.25) rotate(-8deg);opacity:1}
+.preview-love-orbit{filter:drop-shadow(0 18px 25px rgba(90,58,62,.12));}
+.love-orbit-heart{transition:filter .35s ease,box-shadow .35s ease}
+.love-orbit-heart:hover{filter:drop-shadow(0 0 18px rgba(201,135,143,.45));}
+/* Writing desk: clear live state, date control, media drop zones and controls. */
+.studio-tools{flex-wrap:wrap}
+.studio-tools button,.preview-toggle{transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease}
+.studio-tools button:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(74,54,43,.09)}
+.live-feedback{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid rgba(83,64,52,.12);border-radius:999px;background:rgba(255,251,245,.58);font:500 9px 'DM Mono',monospace;letter-spacing:.04em}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#7e9079;box-shadow:0 0 0 4px rgba(126,144,121,.12);animation:deka-pulse 2s infinite}
+.live-feedback.is-dirty .live-dot{background:#b76f78;box-shadow:0 0 0 4px rgba(183,111,120,.12)}
+.preview-toggle.active{background:rgba(169,111,118,.12)!important;border-color:rgba(169,111,118,.28)!important}
+.studio-live-preview{position:relative;z-index:12;width:min(680px,calc(100vw - 36px));margin:0 auto 8px;padding:9px 13px;border:1px solid rgba(169,111,118,.18);border-radius:10px;background:rgba(255,249,241,.8);box-shadow:0 10px 28px rgba(73,52,41,.08);font:10px/1.45 'DM Mono',monospace;color:#745f56;animation:deka-slide-in .28s ease both}
+.studio-live-preview strong{display:block;margin-bottom:3px;color:#8b5660;letter-spacing:.12em;text-transform:uppercase}
+.date-picker-wrap{position:relative;display:inline-flex;align-items:center;gap:10px}
+.date-picker-wrap .date-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2}
+.date-picker-wrap:hover .date-display{color:var(--deka-rose);text-shadow:0 1px 0 rgba(255,255,255,.8)}
+.date-display{transition:color .2s ease,transform .2s ease}
+.interactive-drop{transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease,background .25s ease}
+.interactive-drop.drag-over{transform:translateY(-2px) scale(1.01);border-color:rgba(157,92,103,.55)!important;background:rgba(250,229,231,.65)!important;box-shadow:0 0 0 4px rgba(157,92,103,.1),0 15px 28px rgba(91,61,62,.12)}
+.media-upload,.dedication-upload{transition:transform .25s ease,color .25s ease}
+.media-card:hover .media-upload,.dedication-photo-frame:hover .dedication-upload{transform:translateY(-2px);color:var(--deka-rose)}
+.editor-interactive{transition:background-color .25s ease,box-shadow .25s ease}
+.editor-interactive:focus{box-shadow:inset 0 0 0 1px rgba(157,92,103,.12),0 0 0 4px rgba(157,92,103,.06)}
+.stamp{box-shadow:0 3px 8px rgba(73,52,41,.06)}
+.stamp:active{transform:scale(.93)}
+.delete-page{border:1px solid rgba(157,92,103,.2)!important;background:rgba(255,247,246,.78)!important;color:#8c4f59!important;border-radius:999px!important;padding:8px 12px!important;display:inline-flex!important;align-items:center;gap:6px;cursor:pointer;opacity:1!important;visibility:visible!important;position:relative!important;z-index:5!important;transition:transform .2s ease,background .2s ease,box-shadow .2s ease}
+.delete-page:hover{transform:translateY(-1px);background:#fff!important;box-shadow:0 7px 18px rgba(112,67,70,.12)}
+/* Explicitly keep deletion available on the birthday page; the birthday treatment must not suppress controls. */
+.birthday-paper .delete-page,.birthday-paper .duplicate{display:inline-flex!important;visibility:visible!important;opacity:1!important}
+.notebook-confirm-backdrop{z-index:100!important;backdrop-filter:blur(7px);}
+.notebook-confirm{box-shadow:0 28px 70px rgba(62,43,37,.22),inset 0 1px rgba(255,255,255,.8)!important;}
+.notebook-confirm-actions button{min-height:42px;transition:transform .2s ease,box-shadow .2s ease}
+.notebook-confirm-actions button:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(72,50,42,.1)}
+/* Mobile: preserve the physical-paper feeling without tiny controls. */
+@media (max-width:760px){
+  .studio-live-preview{width:calc(100vw - 24px);margin-bottom:6px;font-size:9px}
+  .studio-tools{gap:6px}
+  .studio-tools button,.live-feedback{min-height:38px}
+  .date-display{font-size:clamp(27px,9vw,39px)}
+  .page-footer{gap:7px;flex-wrap:wrap}
+  .delete-page,.duplicate{min-height:38px;padding:8px 11px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  .preview-choice,.studio-tools button,.date-display,.interactive-drop,.delete-page{transition:none!important}
+  .live-dot{animation:none}
+}
+@keyframes deka-pulse{0%,100%{opacity:.65;transform:scale(.9)}50%{opacity:1;transform:scale(1)}}
+@keyframes deka-slide-in{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
