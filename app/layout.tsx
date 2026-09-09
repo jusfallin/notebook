@@ -14,6 +14,7 @@ import './toolbar-guide.css';
 import './mode-home-redesign.css';
 import './mode-home-mobile.css';
 import './refinement.css';
+import './notebook-enhancements.css';
 import './touch-transition.css';
 import ConfirmProvider from './confirm-provider';
 
